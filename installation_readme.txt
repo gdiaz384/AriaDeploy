@@ -1,0 +1,106 @@
+Post Install-Usage Guide:
+Download drivers for your target systems
+Dell: google "dell cab"
+Lenovo: google "lenovo sccm driver"
+HP: google "hp driver packs"
+Extract somewhere (recommended: use 7zip)
+Start AriaDeploy\sever\AriaDeploy.exe
+Browse to .wim Windows image to deploy
+Browse and select driver folder containing model/version/architecture specific drivers for the target systems
+Recommended: select CRC32 or SHA1 to improve deployment robustness
+Select an RTM unattend.xml file or browse... to select premade answerfile
+Start
+Boot winPE on target systems (any version/architecture with/without packages) using PXE/ISOs/USBs
+Map the network drive (net use Y: \\2012mdt\ariaDeploy$ /u:localhost\limitedUser)
+Launch Y:\AriaDeploy\client\AriaDeployClient.bat  (don't copy locally)
+Depending on the configuration settings in AriaDeploy.ini, the client might prompt before continuing
+Note: All files in the AriaDeploy\client folder (other than the resources folder) are temproary deployment-instance specific files
+Feel free to delete them after deployment completes to keep things tidy
+
+
+Installation Guide:
+AriaDeploy comes partially extracted to jump start use on 64-bit systems. (recommended server:2008r2/2012r2)
+
+1) extract/move the contents of AriaDeploy.7z.exe somewhere (recommended: D:\workspace\AriaDeploy)
+2) edit "server\AriaDeploy.ini" and change the values of pePathToClient/Images/Drivers appropriately
+3) start qtorrent, install from redist\qbittorrent_3.2.3_setup.exe or server\resources\qbittorrent.exe (portable)
+Note: If the firewall annoyance pops up, add it as an exception.
+4) enable qtorrent's embedded tracker: tools->options->advanced->scrolldown->enable embedded tracker->ok
+5) (recommended) tools->options->bt->uncheck the options for distributed hash table (DHT) and local peer discovery (lpd)
+6 a-c) Create a network share containing at least the client path (recommended: share D:\workspace as AriaDeploy$)
+Either use a gooey or run the following cmd commands:
+a) (recommended) net user limitedUser /add
+b) (recommended) net user limitedUser *   -> Enter some password like Vm4nt5Mq5DCVGn7e7mgX
+c) net share AriaDeploy$=d:\workspace /grant:limitedUser,read
+7) (recommended) create a shortcut for or pin D:\workspace\AriaDeploy\server\AriaDeploy.exe somewhere convenient
+8) launch AriaDeploy.exe
+Note: If the firewall annoyance pops up for Aria2c.exe, add it as an exception.
+
+
+Or for a fully manual install (required for 32-bit systems):
+Delete the server and client folders
+and re-create them with the following folder structure:
+AriaDeploy\
+AriaDeploy\client
+AriaDeploy\client\resources
+AriaDeploy\client\resources\x86
+AriaDeploy\client\resources\x64
+AriaDeploy\server
+AriaDeploy\server\resources
+
+On 32-bit systems:
+1) install redist\7z1508.exe
+2) copy redist\7za1508-standalone.7z\7za.exe to 
+AriaDeploy\server\resources
+3) copy py3createtorrent-0.9.5.zip\py3createtorrent-0.9.5\bin\win7\x86\py3createtorrent.exe
+to AriaDeploy\server\resources
+4) copy the following folder  redist\ADK10_DISM_x86.7z\dism  to  AriaDeploy\server\resources\dism
+5) copy redist\aria2-1.19.0-win-32bit-build1.zip\aria2-1.19.0-win-32bit-build1\aria2c.exe
+to AriaDeploy\server\resources
+
+On 64-bit systems:
+1) install redist\7z1508-x64.exe
+2) copy redist\7za1508-standalone.7z\x64\7za.exe to AriaDeploy\server\resources
+3) copy py3createtorrent-0.9.5.zip\py3createtorrent-0.9.5\bin\win7\x64\py3createtorrent.exe
+to AriaDeploy\server\resources
+4) copy the following folder redist\ADK10_DISM_x64.7z\dism  to  AriaDeploy\server\resources\dism
+5) copy redist\aria2-1.19.0-win-64bit-build1.zip\aria2-1.19.0-win-64bit-build1\aria2c.exe
+to AriaDeploy\server\resources
+
+For both 32 and 64 bit systems:
+6) copy redist\7za1508-standalone.7z\7za.exe to AriaDeploy\client\x86
+7) copy redist\7za1508-standalone.7z\x64\7za.exe to AriaDeploy\client\x64
+8) copy redist\aria2-1.19.0-win-32bit-build1.zip\aria2-1.19.0-win-32bit-build1\aria2c.exe
+to AriaDeploy\client\resources\x86
+9) copy redist\aria2-1.19.0-win-64bit-build1.zip\aria2-1.19.0-win-64bit-build1\aria2c.exe
+to AriaDeploy\client\resources\x64
+10) copy redist\AriaDeploy\AriaDeploy.bat and AriaDeploy.exe (both) to
+to AriaDeploy\server
+11) copy redist\AriaDeploy\resources\client.template to
+to AriaDeploy\server\resources
+12) run: "AriaDeploy\server\AriaDeploy.bat /genConfig" to generate an .ini to modify
+13) go to step 2 of the pre-extracted section to continue
+
+
+Advanced:
+Due to licensing 
+
+For manual install step #3, if using py3createtorrent.py (python script) instead of the precompiled py3createtorrent.exe:
+1) copy py3createtorrent-0.9.5.zip\py3createtorrent.py and py3bencode.py to server\resources
+2) install python (architecture specific), being careful to add it to the user path
+3) logout and log back in or reboot computer to update the path
+4) then continue to step 4 normally
+5) after step #2 on the pre-extracted section, modify the server\deploy.ini file to use py3createtorrent.py instead of py3createtorrent.exe
+6) (optional) uncomment out benchcode.py dependency in AriaDeploy.bat to check python is correctly installed at runtime
+
+If using FTP to securely and automatically map CIFS shares:
+1) Install Filezilla server (it's a service level ftp server managed over the network with a GUI) or another FTP server (preferred)
+2) give a user (such as anonymous) access to AriaDeploy\client\resources containing credentials.txt
+3) on winpe, set it to connect to the server and download credentials.txt containing:
+clientDriveLetter=Y
+sharePath=AriaShare$
+serverAddress=2008r2mdt
+username=limitedUser
+password=Vm4nt5Mq5DCVGn7e7mgX
+4) if it downloaded sucessfully, parse the information in credentails.txt to map the drive as specified
+Note: A premade winpe-side parser for this config is at: redist\AriaDeploy\scripts\mapNetworkDrive.bat
