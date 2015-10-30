@@ -8,13 +8,18 @@ Currently AriaDeploy supports all Windows 7-10 x86/x64 images (both RTM and cust
 
 The development emphasis is on zero-configuration "just works" software with minimal end-user dependencies.
 
+## Screenshot:
+
+![screenshot1](redist/AriaDeploy/docs/AriaDeployPic.png)
+
 ## Key Features:
 
 1. Supports extremely simple deployments
 2. Supports fully authomated management of drivers/OOBE/hard drive partitioning/booting aspects of deployment "out of the box"
 3. Supports complicated scenarios via config.ini files and extensibility points
-4. Minimal external dependencies and configuration required (ADK still required)
-5. Transparent design built using Free Open Source Software (FOSS whenever possible) and industry standard tools (ADK)
+4. Reduces dependencies on fragile and configuration intensive multicasting by switching to P2P technology
+5. Minimal external dependencies and configuration required (ADK still required)
+6. Transparent design built using Free Open Source Software (FOSS whenever possible) and industry standard tools (ADK)
 
 ## Planned Features include:
 
@@ -24,7 +29,7 @@ The development emphasis is on zero-configuration "just works" software with min
 4. Automated deployment image and tools integration into recovery partitions (this is useful to OEMs)
 5. AriaDeploy for OS/X (will be a while)
 
-Put pictures here to indicate where AriaDeploy fits into the system management lifecycle.
+![screenshot1](redist/AriaDeploy/docs/AriaSystemLifecycle.png)
 
 ## AriaDeploy will
 
@@ -44,8 +49,8 @@ Put pictures here to indicate where AriaDeploy fits into the system management l
 
 ## Typical Workflow Usage Guide:
 
-1. (optional) Download drivers for your hardware model(s) from [Dell] [Lenovo] and [HP]
-2. (optional) Extract to some folder like D:\Drivers\Dell\Optiplex9010\Win7\x64
+1. (optional) Download drivers for your hardware model(s) from [Dell](http://en.community.dell.com/techcenter/enterprise-client/w/wiki/2065.dell-command-deploy-driver-packs-for-enterprise-client-os-deployment), [Lenovo](https://support.lenovo.com/us/en/documents/ht074984) and [HP](http://www8.hp.com/us/en/ads/clientmanagement/drivers-pack.html) 
+2. (optional) Extrac	t to some folder like D:\Drivers\Dell\Optiplex9010\Win7\x64
 3. Double click on AriaDeploy.exe
 4. Select your .wim image created using DISM/MDT
 5. (optional) Select the drivers folder from step 2 (D:\Drivers\Dell\Optiplex9010\Win7\x64)
@@ -55,14 +60,10 @@ Put pictures here to indicate where AriaDeploy fits into the system management l
 9. Map network drive from within Windows PE (or write a script to do this automatically)
 10. Start Y:\client\AriaDeployClient.bat (or write a script to do this automatically)
 
+![screenshot1](redist/AriaDeploy/docs/AriaDeployWorkflow.png)
+
 ## Download:
 
-```
-Note: Anything prior to version 1.0 is alpha/beta quality depending upon release and current focus of development is on architectural imrovements and features not stability/bug fixes.
-
-Latest Release: v0.3.1a
-In Development: v0.4.0a
-```
 Click [here](https://www.google.com) or on "releases" at the top to download the latest version.
 
 ## Install guide:
@@ -70,7 +71,7 @@ Click [here](https://www.google.com) or on "releases" at the top to download the
 Due to the ADK's non-redistributable clause, I cannot provide prebuilt WinPE images for use with AriaDeploy. For similar reasons, I also cannot provide full unattend.xml files, only templates for them.
 
 1. So go download and install the ADK for Windows 10 and/or Windows 8.1. Both is prefered but just one works. Win7's AIK also works.
-2. (optional) While waiting for the ADKs to download/install (takes a while), go download drivers for WinPE from [Dell] [Lenovo] and [HP]
+2. (optional) While waiting for the ADKs to download/install (takes a while), go download drivers for WinPE from  [Dell](http://en.community.dell.com/techcenter/enterprise-client/w/wiki/2065.dell-command-deploy-driver-packs-for-enterprise-client-os-deployment), [Lenovo](https://support.lenovo.com/us/en/documents/ht074984) and [HP](http://www8.hp.com/us/en/ads/clientmanagement/drivers-pack.html) 
 3. (optional) extract the PE drivers to the appropriate folders: AriaDeploy\drivers\WinPE\5_x\x64 or 10_x86
 4. After the ADK finishes installing, double click on InstallAriaDeploy.bat
 5. (optional) Click here for generic RTM unattend.xml files and here for the MS license keys to use when deploying systems
@@ -88,7 +89,12 @@ Due to the ADK's non-redistributable clause, I cannot provide prebuilt WinPE ima
 
 ## Version History/Planning
 
+Note: Anything prior to version 1.0 is alpha/beta quality depending upon release and current focus of development is on architectural imrovements and features not stability/bug fixes.
+
 ```
+Latest Release: v0.3.1a
+In Development: v0.4.0a
+
 ::0.5.0 added partial mac support (no drivers)(?) winpe/dism not licensed for use on non-windows systems, 
 ::gparted can HFS+, rEFInd can boot, live distros are common, just need to find one that can access NFS/CIFS shares easily
 ::might need to convert batch script to .sh so maybe AriaDeployForMac
