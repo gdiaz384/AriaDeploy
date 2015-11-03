@@ -1,14 +1,17 @@
-VersionHistory/Planning: (anything prior to version 1.0 is alpha/beta quality depending upon release)
-::0.5.0 added partial mac support (no drivers)(?) winpe/dism not licensed for use on non-windows systems, 
+VersionHistory/Planning:
+
+Note: Anything prior to version 1.0 is alpha/beta quality depending upon release and current focus of development is on architectural imrovements and features not stability/bug fixes.
+
+::2.0.0 added partial mac support (no drivers)(?) winpe/dism not licensed for use on non-windows systems, 
 ::gparted can HFS+, rEFInd can boot, live distros are common, just need to find one that can access NFS/CIFS shares easily
 ::might need to convert batch script to .sh so maybe AriaDeployForMac
-0.4.3 added optional 7z deployment scenario
-0.4.2 formalized "deployment on a stick" and installer scenarios by precompiling and bunding software into "WinPE5_x64_AriaDeploy.iso" files
+1.1.0 added optional 7z deployment scenario
+1.0.0 formalized "deployment on a stick" and installer scenarios
 0.4.1 added heterogenous hardware support using WMI, (requires WMI components in PE images however), streamlined installation files
-0.4.0 added support for "deployment on a stick" scenarios (by replacing qTorrent with py3bt_tracker) and made server architecture agnostic, bug fixed AriaDeploy.exe
+0.4.0 added support for "deployment on a stick" scenarios (by replacing qTorrent with py3bt_tracker), made server architecture agnostic, bug fixed AriaDeploy.exe
 0.3.1 refractored code, improved overall reliability, created "installer", switched to FOSS qTorrent over uTorrent for server aspect, and reduced requirements
 0.3 refractored code, addedUI, improved client side reliability, changed name to "AiraDeploy"
-0.2 refractored code, added server components, improved scalability (architecture agnostic using Aria instead of uTorrent3.3)
+0.2 refractored code, added server component, improved scalability (architecture agnostic using Aria instead of uTorrent3.3)
 0.1 "massDeploy" concept art using uTorrent 3.3/psutils, client side only
 
 Current version: 0.3.1, working on 0.4.0

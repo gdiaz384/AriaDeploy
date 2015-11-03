@@ -25,12 +25,10 @@ set default_pePathToImages=Y:\images
 set default_pePathToDrivers=Y:\updates\drivers
 
 ::server-side configuration::
-::set default_seederClientPath=C:\Program Files (x86)\uTorrent
-::set default_seederClientexe=uTorrent.exe
 set default_seederClientPath=resources
 set default_seederClientexe=aria2c.exe
 ::local port used for tracker (use the local port of the seeding client if running an embedded tracker)
-set default_trackerPort=9000
+set default_trackerPort=6969
 set default_unattendfileSource=D:\autodeploy\server\resources\unattendXml
 
 ::server-side control flow::
@@ -114,6 +112,8 @@ set default_serverConfigFile=%~n0.ini
 ::autodeploy\client\deployClient.ini
 ::8) Seeding: (startSeeding)
 
+set arch=%processor_architecture%
+if /i "%arch%" equ "amd64" set arch=x64
 
 ::1) gather enviornment data (autodeploy path and configuration settings)
 ::default settings (createTorrentExe, related syntax)
@@ -126,7 +126,7 @@ set pePathToImages=%default_pePathToImages%
 set pePathToDrivers=%default_pePathToDrivers%
 
 ::server side configuration::
-set seederClientPath=%default_seederClientPath%
+set seederClientPath=%default_seederClientPath%\%arch%
 set seederClientexe=%default_seederClientexe%
 set trackerPort=%default_trackerPort%
 set unattendfileSource=%default_unattendfileSource%
