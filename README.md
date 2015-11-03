@@ -1,12 +1,18 @@
 # AriaDeploy
 
-AriaDeploy is an Automated Scalable Windows Deployment Tool
+AriaDeploy is a Tool for Deploying Windows Systems in Enterprise Enviornments
 
-AriaDeploy transfers previously captured .wim images (captured via dism/mdt/imagex/gimagex/sccm) over the network using Aria, a bittorrent client, and automates common deployment tasks such as the installation of drivers.
+AriaDeploy transfers previously captured .wim images (captured via dism/mdt/imagex/gimagex/sccm) over the network using Aria, a bittorrent client, and automates common deployment tasks, such as the installation of drivers.
 
-Currently AriaDeploy supports all Windows 7-10 x86/x64 images (both RTM and custom) for deployment on BIOS/UEFI systems.
+Currently AriaDeploy supports all Windows 7-10 x86/x64 images (both RTM and custom), and including servers, for deployment on BIOS/UEFI systems.
 
-The development emphasis is on zero-configuration "just works" software with minimal end-user dependencies.
+AriaDeploy:
+- focuses on providing completely automatic deployment 
+- aims to enable zero-configuration deployment scenarios
+- while also supporting very complicated deployment scenarios
+- is scalable horizontally whether deploying to 5 or 500 computers 
+- seemlessly integrates into existing workflows
+- has minimal dependencies and aims to be trivial to bootstrap
 
 ## Screenshots:
 
@@ -38,16 +44,16 @@ The development emphasis is on zero-configuration "just works" software with min
 3. will automate the installation of drivers
 4. will make the target systems bootable using the PE boot mode information
 5. will automate oobe
-6. is an implementation of the best technology to use when transfering large files over unreliable networks
+6. allow for asyncronous deployments, unlike traditional server-clients using the high-configuration mulitcasting model
 7. is designed to integrate into existing MDT and SCCM workflows, including those involving Active Directory
 
 ## AriaDeploy is not/will not
 
-1. will not capture images or deploy virtual disks (.vhd/vmx files)
+1. will not capture images or deploy virtual disks (.vhd/vmdk files)
 2. will NOT preserve user data on target systems
 3. will not download the correct drivers for you
 4. will not determine that windows version X cannot boot as configured on target system Y due to incompatability Z
-5. will not input the correct product key for you in the unattend.xml templates or autogenerate unattend.xml files (use MDT for that instead)
+5. will not autogenerate unattend.xml files (use MDT for that instead) or input the correct product key for you in the unattend.xml templates
 6. is not a full deployment solution
 7. is not dependent upon WDS/MDT/SCCM/Active Directory
 
