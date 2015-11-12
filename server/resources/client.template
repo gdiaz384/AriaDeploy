@@ -37,8 +37,8 @@ call :cleanInput "%configFilesLocation%" configFilesLocation
 if not exist "%configFilesLocation%" (echo  error initalizing %~nx0: "%configFilesLocation%" does not exist
 goto end)
 
-::need to know where running from
-::if being run locally, then something, but if being run from the server then assume no files available and copy anything needed
+::need to know where running from, assume running from the server
+::assume no files available and copy anything needed from the server's client\resources directory (architecture specific)
 pushd "%systemroot%\system32"
 
 
@@ -49,6 +49,7 @@ set default_imageIndex=1
 set default_unattendfileName=unattend_Win7_Ultimate_x64_advanced.xml
 set default_driversArchiveName=Win7_x64_drivers.zip
 set default_torrentfileName=Win7Sp1Ult_x64_slim_22July15.esd.torrent
+set default_transferMode=normal
 set default_hashType=crc32
 set default_hashData=invalid
  
@@ -145,6 +146,7 @@ set imageIndex=%default_imageIndex%
 set unattendfileName=%default_unattendfileName%
 set driversArchiveName=%default_driversArchiveName%
 set torrentfileName=%default_torrentfileName%
+set transferMode=%default_transferMode%
 set hashType=%default_hashType%
 set hashData=%default_hashData%
  
@@ -177,13 +179,12 @@ set configfile=%default_configfile%
 
 ::) update variables using deployClient.ini
 if not exist "%configfile%" goto skipSettingsUpdate
-for /f "skip=2 eol=: delims== tokens=1-10" %%i in ('find /i "configFilesLocation=" %configfile%') do if /i "%%j" neq "" set configFilesLocation=%%j
-
 for /f "skip=2 eol=: delims== tokens=1-10" %%i in ('find /i "imagefileName=" %configfile%') do if /i "%%j" neq "" set imagefileName=%%j
 for /f "skip=2 eol=: delims== tokens=1-10" %%i in ('find /i "imageIndex=" %configfile%') do if /i "%%j" neq "" set imageIndex=%%j
 for /f "skip=2 eol=: delims== tokens=1-10" %%i in ('find /i "unattendfileName=" %configfile%') do if /i "%%j" neq "" set unattendfileName=%%j
 for /f "skip=2 eol=: delims== tokens=1-10" %%i in ('find /i "driversArchiveName=" %configfile%') do if /i "%%j" neq "" set driversArchiveName=%%j
 for /f "skip=2 eol=: delims== tokens=1-10" %%i in ('find /i "torrentfileName=" %configfile%') do if /i "%%j" neq "" set torrentfileName=%%j
+for /f "skip=2 eol=: delims== tokens=1-10" %%i in ('find /i "transferMode=" %configfile%') do if /i "%%j" neq "" set transferMode=%%j
 for /f "skip=2 eol=: delims== tokens=1-10" %%i in ('find /i "hashType=" %configfile%') do if /i "%%j" neq "" set hashType=%%j
 for /f "skip=2 eol=: delims== tokens=1-10" %%i in ('find /i "hashData=" %configfile%') do if /i "%%j" neq "" set hashData=%%j
 
@@ -219,13 +220,12 @@ call :cleanInput "%winPEArchitecture%" winPEArchitecture
 call :cleanInput "%bootMode%" bootMode
 call :cleanInput "%current_ip%" current_ip
 
-call :cleanInput "%configFilesLocation%" configFilesLocation
-
 call :cleanInput "%imagefileName%" imagefileName
 call :cleanInput "%imageIndex%" imageIndex
 call :cleanInput "%unattendfileName%" unattendfileName
 call :cleanInput "%driversArchiveName%" driversArchiveName
 call :cleanInput "%torrentfileName%" torrentfileName
+call :cleanInput "%transferMode%" transferMode
 call :cleanInput "%hashType%" hashType
 call :cleanInput "%hashData%" hashData
 
@@ -249,7 +249,6 @@ call :cleanInput "%restartAutomatically%" restartAutomatically
 call :cleanInput "%customPreImagingScript%" customPreImagingScript
 call :cleanInput "%customPostImagingScript%" customPostImagingScript
 call :cleanInput "%customPostOobeScript%" customPostOobeScript
-
 
 
 ::) validate values, set back to default if invalid or error out
@@ -283,6 +282,9 @@ if /i "%driversArchiveName%" neq "invalid" call :verifyExtension "%driversArchiv
 
 if /i "%torrentfileName%" neq "invalid" call :verifyExtension "%torrentfileName%" torrentfileName torrent
 ::if torrent file name is invalid, will need to skip to unicast mode, if enableUnicastfallbackforImage is not true then deployment will fail, check before formatting disk
+
+if /i "%transferMode%" neq "private" if /i "%transferMode%" neq "normal" if /i "%transferMode%" neq "noisy" (echo   network transfer mode settings is invalid:"%transferMode%" setting to %default_transferMode%
+set createTorrent=%default_transferMode%)
 
 ::if the hashType is invalid, assume the hashData doesn't match
 if /i "%hashType%" neq "crc32" if /i "%hashType%" neq "crc64" if /i "%hashType%" neq "sha1" if /i "%hashType%" neq "sha256" (
@@ -363,6 +365,7 @@ call :cleanInput "%imageIndex%" imageIndex
 call :cleanInput "%unattendfileName%" unattendfileName
 call :cleanInput "%driversArchiveName%" driversArchiveName
 call :cleanInput "%torrentfileName%" torrentfileName
+call :cleanInput "%transferMode%" transferMode
 call :cleanInput "%hashType%" hashType
 call :cleanInput "%hashData%" hashData
 
@@ -592,10 +595,17 @@ if not exist %winDrive%  echo   unspecified error could not detect destination d
 if /i "%torrentclientexe%" equ "invalid" goto unicastImage
 set targetTempFilesLocation=%winDrive%\%targetTempFilesLocation%
 if not exist "%targetTempFilesLocation%" mkdir "%targetTempFilesLocation%"
+
+if /i "%transferMode%" neq "noisy" (
 set torrentclientSyntax=--check-integrity=true --seed-time=%postDownloadSeedTime% --dir="%targetTempFilesLocation%" --bt-seed-unverified=true --bt-external-ip=%current_ip% --enable-dht=false --bt-enable-lpd=false --enable-peer-exchange=true --bt-force-encryption=true
+)
+if /i "%transferMode%" equ "noisy" (
+set torrentclientSyntax=--check-integrity=true --seed-time=%postDownloadSeedTime% --dir="%targetTempFilesLocation%" --bt-seed-unverified=true --bt-external-ip=%current_ip% --enable-dht=true --bt-enable-lpd=true --enable-peer-exchange=true --bt-force-encryption=true
+)
 
 ::start cmd /k
 ::could prolly make it display PE info somehow, but would need to be standalone, so...create script dynamically?
+::or could write information to a text file and display it, then delete it
 start cmd
 
 ::start torrent client and wait for download+seeding time
@@ -615,9 +625,9 @@ if defined newcolor color %newcolor%
 ::if image not present after unicasting, then something seriously wrong, don't hash check and ask to reformat again
 ::if first hashcheck fails, try unicast if enabled, if second hashcheck fails, ask to reformat and try again
 
-if not exist "%targetTempFilesLocation%\%imagefileName%" goto unicastImage
 
 :findHashPostTorrent
+if not exist "%targetTempFilesLocation%\%imagefileName%" goto unicastImage
 ::okay so if the image exist, but hash checking is disabled, then assume the image is fine and goto deploy
 if /i "%findHashStatus%" neq "true" goto deploy
 echo    Calculating hash of downloaded file please wait...

@@ -13,11 +13,12 @@ set serveraddress1=2012r2mdt
 set serveraddress2=2008r2mdt
 set serveraddress3=192.168.106.150
 set serveraddress4=192.168.0.150
+set serveraddress5=AriaDeployLite
 set ftpUserName=anonymous
 ::nul is not the password, it means no password set. Changing it to anything else will specify an actual password
 set ftpUserNamePassword=nul
 set credentialsFile=credentialsForNetworkDrive.txt
-set networkDriveLetter=Y
+set default_networkDriveLetter=Y
 
 ::Overview:
 ::1) test if addresses exist
@@ -32,7 +33,7 @@ if exist "%validIPtxt%" del "%validIPtxt%"
 set validAddressFound=false
 :step2
 ::test if addresses exist
-for %%i in (1,2,3,4) do (call :checkLink !serveraddress%%i!
+for %%i in (1,2,3,4,5) do (call :checkLink !serveraddress%%i!
 if !errorlevel! equ 0 (echo !serveraddress%%i!>>%validIPtxt%
 echo   !serveraddress%%i! reachable
 set validAddressFound=true)
@@ -57,6 +58,8 @@ for /f "skip=2 delims== tokens=1-10" %%a in ('find "sharePath" %credentialsFile%
 for /f "skip=2 delims== tokens=1-10" %%a in ('find "serverAddress" %credentialsFile%') do set serverAddress=%%b
 for /f "skip=2 delims== tokens=1-10" %%a in ('find "username" %credentialsFile%') do set networkUserName=%%b
 for /f "skip=2 delims== tokens=1-10" %%a in ('find "password" %credentialsFile%') do set networkUserPsw=%%b
+
+if not defined networkDriveLetter set networkDriveLetter=%default_networkDriveLetter%
 
 if exist %networkDriveLetter%: (echo   %networkDriveLetter%: already exists
 net use

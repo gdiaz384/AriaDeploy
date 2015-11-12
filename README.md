@@ -4,15 +4,7 @@ AriaDeploy is a Tool for Deploying Windows Systems in Enterprise Enviornments
 
 AriaDeploy transfers previously captured .wim images (captured via dism/mdt/imagex/gimagex/sccm) over the network using Aria, a bittorrent client, and automates common deployment tasks, such as the installation of drivers.
 
-Currently AriaDeploy supports all Windows 7-10 x86/x64 images (both RTM and custom), and including servers, for deployment on BIOS/UEFI systems.
-
-AriaDeploy:
-- focuses on providing completely automatic deployment 
-- aims to enable zero-configuration deployment scenarios
-- while also supporting very complicated deployment scenarios
-- is scalable horizontally whether deploying to 5 or 500 computers 
-- seemlessly integrates into existing workflows
-- has minimal dependencies and aims to be trivial to bootstrap
+Currently AriaDeploy supports all Windows 7-10 x86/x64 and server images, both RTM and custom, for deployment on BIOS/UEFI systems.
 
 ## Screenshots:
 
@@ -22,12 +14,17 @@ AriaDeploy:
 
 ## Key Features:
 
-1. Supports both extremely simple and very complicated deployments
-2. Supports fully automated management of drivers/OOBE/hard drive partitioning/booting aspects of deployment "out of the box"
-3. Supports complicated scenarios via config.ini files and extensibility points
-4. Reduces dependencies on fragile and configuration intensive multicasting by switching to P2P technology
-5. Minimal external dependencies and configuration required (ADK still required)
-6. Transparent design built using Free Open Source Software whenever possible and industry standard tools (ADK)
+1. Focuses on providing completely automatic deployment
+2. Aims to be a zero-configuration tool for automating simple deployments
+3. Supports fully automated management of drivers/OOBE/hard drive partitioning/booting aspects of deployment "out of the box"
+4. Aims to be trivial to get started
+5. Seemlessly integrates into existing workflows
+6. Supports complicated scenarios via config.ini files and user specified scripts during extensibility points 
+7. Supports single deployment instances even in heterogenous booting/winpe/hardware enviornments transparently
+8. Eliminates dependency on fragile and configuration intensive multicasting technology
+9. Unlike unicasting based solutions, AriaDeploy is scalable whether deploying to 1 or 500 computers
+10. Has minimal external dependencies
+11. Transparent design built using Free Open Source Software whenever possible and industry standard tools (ADK)
 
 ## Planned Features include:
 
@@ -68,13 +65,14 @@ AriaDeploy:
 5. (optional) Select the drivers folder from step 2 (D:\Drivers\Dell\Optiplex9010\Win7\x64)
 6. (optional) Select the type of unattend.xml file to use, an RTM one or a custom one
 7. Click on "Start"
-8. Boot target systems using Windows PE (any version using any boot method: usb drives/cds/PXE) 
-9. Map network drive from within Windows PE (or write a script to do this automatically)
-10. Start Y:\client\AriaDeployClient.bat (or write a script to do this automatically)
+8. (optional) Start FTP server
+9. Boot target systems using Windows PE (any version of PE 3.x+ using any boot method: usb drives/cds/PXE) 
+10. Map network drive from within Windows PE (or use the included script to do this automatically using FTP)
+11. Start Y:\client\AriaDeployClient.bat (or use the included setEnviornment.bat to do this automatically)
 
 ## Download:
 
-Click [here](https://github.com/gdiaz384/AriaDeploy/releases) or on "releases" at the top to download the latest version.
+Click [here](//github.com/gdiaz384/AriaDeploy/releases) or on "releases" at the top to download the latest version.
 
 ## Install guide:
 
@@ -85,22 +83,12 @@ I have bundled most of the dependencies into the installer, but due to the ADK's
 3. (optional) extract the PE drivers to the appropriate folders: AriaDeploy\drivers\WinPE\5_x\x64 or 10_x86
 4. (optional) Also get the [generic RTM unattend.xml files](https://github.com/gdiaz384/AriaDeploy/releases) and here for the [MS license keys to use when deploying systems](https://technet.microsoft.com/en-us/library/jj612867.aspx)
 5. (optional) Input the MS keys into the unattend.RTM.xml files
-6. Anytime after the ADK finishes installing, double click on InstallAriaDeploy.bat
-
-## Internal Dependency List:
-
-1. Requires ADK tools (dism, windowsPE, ocdimg, bcdboot) -[ADK for Windows 8.1](https://www.microsoft.com/en-US/download/details.aspx?id=39982) or [above](https://msdn.microsoft.com/en-us/windows/hardware/dn913721.aspx) preferred
-2. ESD deployment is supported when using DISM versions for Windows 8.1 and above on x64 PE images
-3. Aria2 available over at sourceforge [1.19.0](http://aria2.sourceforge.net/) 
-4. 7zip available here [15.0.9b](http://www.7-zip.org)
-5. py3createtorrent [0.9.5](https://py3createtorrent.readthedocs.org/en/latest/user.html)
-6. py3bt_tracker [1.0.0](https://github.com/gdiaz384/py3bt_tracker)
-7. #5 and #6 and have internal dependencies: TDM-GCC over MingGW, tornado, bencode, pyinstaller, python etc
-8. Architectural diagram illustrating these dependencies can be found at redist\AriaDeploy\AriaDeployControlFlow.png
+6. After the ADK finishes installing, double click on InstallAriaDeploy.bat
 
 ## Version History/Planning
 
-Note: Anything prior to version 1.0 is alpha/beta quality depending upon release and current focus of development is on architectural imrovements and features not stability/bug fixes.
+Note: Anything prior to version 1.0 is alpha/beta quality depending upon release.
+The current focus of development is on architectural improvements and features.
 
 ```
 Current Version: 0.3.1a
@@ -123,3 +111,4 @@ In Development: 0.4.0a
 Pick your License: GPL (any)
 
 If I get any questions on licensing, I'm changing this to "beerware" and will refuse to elaborate further.
+

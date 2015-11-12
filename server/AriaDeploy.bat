@@ -12,34 +12,36 @@ if /i "%~1" equ "genConfig" goto genConfig
 
 ::These are the default values, and will be overriden by the configuration file (deploy.ini)
 ::Then those ini configuration settings can be overriden by settings at runtime
-
 ::start Default settings::
-::Very important: pePathToClient is the path from Win PE where clients search to find the client 
-::configuration files (like deployclient.bat and .ini) Syntax: networkdrive:\path\to\client   If the local path looks 
-::like: D:\workspace\autodeploy\client, and if workspace is shared then
-set default_pePathToClient=Y:\autodeploy\client
-::Make sure the letter used in pePathToClient matches the network drive the clients are actually using.
+::Make sure the letter used in the following two values matches the network drive the clients are actually using.
 ::If using ftp to map the drive letter, change it by modifying credentials.txt in the ftp home directory.
-::To enable the (optional) unicast fallback features, the original sources must be in the network share path (D:\workspace\images)
+::For the (optional) unicast fallback features, the following resources must be accessible to clients in the network share path:
 set default_pePathToImages=Y:\images
 set default_pePathToDrivers=Y:\updates\drivers
 
 ::server-side configuration::
-set default_seederClientPath=resources
 set default_seederClientexe=aria2c.exe
+set default_trackerexe=py3bttracker.exe
 ::local port used for tracker (use the local port of the seeding client if running an embedded tracker)
 set default_trackerPort=6969
-set default_unattendfileSource=D:\autodeploy\server\resources\unattendXml
+set default_unattendfileSource=D:\scripts\unattendXml
 
 ::server-side control flow::
 set default_checkIfPythonIsInstalled=true
 set default_startSeeding=true
+set default_startTracker=true
 
 ::settings for both server and clients::
 set default_createTorrent=true
+::creating a private torrent tells the client to explicitly disable -1-peer exchange -2-DHT -3-local peer discovery, dht lpd need disabling, they are too noisy
+::but specifying that at the client level, instead of in the torrent file itself, leaves peer exchange enabled for the torrent, px is helpful and not noisy
+::transfer mode can be private, normal or noisy
+::normal is reccomended, but noisy can work without a tracker
+set default_transferMode=normal
 set default_unattendfileType=invalid
 set default_hashType=invalid
 set default_repackageDrivers=true
+::7z or zip
 set default_archiveType=zip
 
 ::client-side settings configuration::
@@ -56,16 +58,16 @@ set default_torrentclientexe=aria2c.exe
 set default_hashGenExe=7za.exe
 
 ::client-side control flow::
-set default_requirePrompt=false
-set default_postDownloadSeedTime=5
+set default_requirePrompt=true
+set default_postDownloadSeedTime=4
 set default_deleteImageFileAfterDeploymentCompletes=true
 set default_deleteDriverArchiveAfterApplying=true
 set default_restartAutomatically=false
 
 ::custom client-side scripts::
 ::For custom extensibility scripts, specify the name only, and place them in the autodeploy\client directory
-::supported formats are cmd, bat, vbs and exe,
-::they will run from x:\windows\system32 in the PE enviornment and get called as "call Y:\autodeploy\client\myscript.bat"
+::supported formats are cmd, bat, vbs and exe
+::they will run from x:\windows\system32 in the PE enviornment and get called as "call myscript.bat"
 set default_customPreImagingScript=invalid
 ::set default_customPreImagingScript=getExistingComputerNameAndMac.bat
 set default_customPostImagingScript=invalid
@@ -111,9 +113,7 @@ set default_serverConfigFile=%~n0.ini
 ::autodeploy\client\drivers.zip
 ::autodeploy\client\deployClient.ini
 ::8) Seeding: (startSeeding)
-
-set arch=%processor_architecture%
-if /i "%arch%" equ "amd64" set arch=x64
+::9) start Tracker
 
 ::1) gather enviornment data (autodeploy path and configuration settings)
 ::default settings (createTorrentExe, related syntax)
@@ -121,22 +121,23 @@ if /i "%arch%" equ "amd64" set arch=x64
 ::highest priority are any  command line settings (highest precedence) (.wim file, index, hashType, .xml file)
 ::some instance specific settings can't be initalized until after wimfile gets parsed (at runtime)
 
-set pePathToClient=%default_pePathToClient%
 set pePathToImages=%default_pePathToImages%
 set pePathToDrivers=%default_pePathToDrivers%
 
 ::server side configuration::
-set seederClientPath=%default_seederClientPath%\%arch%
 set seederClientexe=%default_seederClientexe%
+set trackerExe=%default_trackerExe%
 set trackerPort=%default_trackerPort%
 set unattendfileSource=%default_unattendfileSource%
 
 ::server-side control flow::
 set checkIfPythonIsInstalled=%default_checkIfPythonIsInstalled%
 set startSeeding=%default_startSeeding%
+set startTracker=%default_startTracker%
 
 ::settings for both server and clients::
 set createTorrent=%default_createTorrent%
+set transferMode=%default_transferMode%
 set unattendfileType=%default_unattendfileType%
 set hashType=%default_hashType%
 set repackageDrivers=%default_repackageDrivers%
@@ -177,19 +178,20 @@ set serverConfigFile=%default_serverConfigFile%
 
 if not exist "%serverConfigFile%" goto skipReadingServerConfigFile
 ::All default settings have been set, begin .ini override
-for /f "skip=2 eol=: delims== tokens=1-10" %%i in ('find /i "pePathToClient=" %serverConfigFile%') do if /i "%%j" neq "" set pePathToClient=%%j
 for /f "skip=2 eol=: delims== tokens=1-10" %%i in ('find /i "pePathToImages=" %serverConfigFile%') do if /i "%%j" neq "" set pePathToImages=%%j
 for /f "skip=2 eol=: delims== tokens=1-10" %%i in ('find /i "pePathToDrivers=" %serverConfigFile%') do if /i "%%j" neq "" set pePathToDrivers=%%j
 
-for /f "skip=2 eol=: delims== tokens=1-10" %%i in ('find /i "seederClientPath=" %serverConfigFile%') do if /i "%%j" neq "" set seederClientPath=%%j
 for /f "skip=2 eol=: delims== tokens=1-10" %%i in ('find /i "seederClientexe=" %serverConfigFile%') do if /i "%%j" neq "" set seederClientexe=%%j
+for /f "skip=2 eol=: delims== tokens=1-10" %%i in ('find /i "trackerExe=" %serverConfigFile%') do if /i "%%j" neq "" set trackerExe=%%j
 for /f "skip=2 eol=: delims== tokens=1-10" %%i in ('find /i "trackerPort=" %serverConfigFile%') do if /i "%%j" neq "" set trackerPort=%%j
 for /f "skip=2 eol=: delims== tokens=1-10" %%i in ('find /i "unattendfileSource=" %serverConfigFile%') do if /i "%%j" neq "" set unattendfileSource=%%j
 
 for /f "skip=2 eol=: delims== tokens=1-10" %%i in ('find /i "checkIfPythonIsInstalled=" %serverConfigFile%') do if /i "%%j" neq "" set checkIfPythonIsInstalled=%%j
 for /f "skip=2 eol=: delims== tokens=1-10" %%i in ('find /i "startSeeding=" %serverConfigFile%') do if /i "%%j" neq "" set startSeeding=%%j
+for /f "skip=2 eol=: delims== tokens=1-10" %%i in ('find /i "startTracker=" %serverConfigFile%') do if /i "%%j" neq "" set startTracker=%%j
 
 for /f "skip=2 eol=: delims== tokens=1-10" %%i in ('find /i "createTorrent=" %serverConfigFile%') do if /i "%%j" neq "" set createTorrent=%%j
+for /f "skip=2 eol=: delims== tokens=1-10" %%i in ('find /i "transferMode=" %serverConfigFile%') do if /i "%%j" neq "" set transferMode=%%j
 for /f "skip=2 eol=: delims== tokens=1-10" %%i in ('find /i "unattendfileType=" %serverConfigFile%') do if /i "%%j" neq "" set unattendfileType=%%j
 for /f "skip=2 eol=: delims== tokens=1-10" %%i in ('find /i "hashType=" %serverConfigFile%') do if /i "%%j" neq "" set hashType=%%j
 for /f "skip=2 eol=: delims== tokens=1-10" %%i in ('find /i "repackageDrivers=" %serverConfigFile%') do if /i "%%j" neq "" set repackageDrivers=%%j
@@ -215,6 +217,8 @@ for /f "skip=2 eol=: delims== tokens=1-10" %%i in ('find /i "customPostImagingSc
 for /f "skip=2 eol=: delims== tokens=1-10" %%i in ('find /i "customPostOobeScript=" %serverConfigFile%') do if /i "%%j" neq "" set customPostOobeScript=%%j
 :skipReadingServerConfigFile
 
+set currentArchitecture=%processor_architecture%
+if /i "%currentArchitecture%" equ "amd64" set currentArchitecture=x64
 
 ::read from command line
 if not exist "%~1" (echo   error please specify the full path of valid image file. Does not exist:&echo         "%~1"&goto end) else (set rawWimfilePath=%~1)
@@ -225,7 +229,7 @@ if /i "%~5" equ "" (set unattendfileType=%unattendfileType%) else (set unattendf
 
 ::need to parse and validate wimfile right away to set the rest of the config options
 call :parsePath "%rawWimfilePath%"
-set dismPathAndExe=resources\dism\dism.exe
+set dismPathAndExe=resources\%currentArchitecture%\dism\dism.exe
 
 set wimfilePath=%fullfolderpath%
 if "%folderpath%" neq "nul" set wimfilePathNoDriveLetter=%folderpath%
@@ -261,22 +265,20 @@ call :getWimInfo "%wimfilePath%\%wimfileName%" "%wimIndex%"
 
 
 :setFinalConfigSettings
-call :cleanInput "%deployClientPath%" deployClientPath
-::deployclient path is a relative path, change it to absolute here for seederClient syntax, cd works since pushd was used earlier for %~dp0
-:: D:\autodeploy\server \  ..\client  \  %torrentfilename%
+:: AriaDeploy's client path is a relative path, change it to absolute here for seederClient syntax, cd works since pushd was used earlier for %~dp0
+:: D:\AriaDeploy\server \  ..\client  \  %torrentfilename%
 set deployClientPathAbsPath=%cd%\%deployClientPath%
+set resourcesPath=resources\%currentArchitecture%
 
 ::initalize script specific variables::
 set tempdir=%temp%\temp%random%
 if not exist "%tempdir%" mkdir "%tempdir%"
 set torrentfileName=%wimfileName%.torrent
-set createTorrentExePath=resources
+set seederClientPath=%resourcesPath%
+set createTorrentExePath=%resourcesPath%
+set trackerPath=%resourcesPath%
 set createTorrentExe=py3createtorrent.exe
 ::set createTorrentExeDependency=py3bencode.py
-::creating a private torrent explicitly disables 1) peer exchange 2) DHT 3) local peer discovery, dht/lpd need disabling (they are too noisy)
-::but specifying that at the client level, instead of in the torrent file itself, leaves peer exchange enabled for the torrent (px is helpful and not noisy)
-::set createTorrentSyntax=--piece-length=16384 --force --md5 --private --output="%tempdir%\%torrentfileName%" "%wimfilePath%\%wimfileName%"
-set createTorrentSyntax=--piece-length=16384 --force --md5 --output="%tempdir%\%torrentfileName%" "%wimfilePath%\%wimfileName%"
 ::set seeder syntax to start seeding after moving the torrent to the deployClientdirectory
 ::set seederClientSyntax=/directory "%wimfilePath%"
 ::To limit seeding time, add the --seed-time option as "--seed-time=60" for 60 minutes of seeding, don't use quotes
@@ -292,19 +294,20 @@ set hashData=invalid
 ::should prolly like, check for spaces at the end of the paths, those can be tricky to debug at run time
 ::call remove end spaces, cleanupInput expects %1 the raw input to clean up and %2, the variable to put the result in
 ::call :cleanupInput "d:\mypath\withtrailing\spaces\  " cleaned
-call :cleanInput "%pePathToClient%" pePathToClient
 call :cleanInput "%pePathToImages%" pePathToImages
 call :cleanInput "%pePathToDrivers%" pePathToDrivers
 
-call :cleanInput "%seederClientPath%" seederClientPath
 call :cleanInput "%seederClientexe%" seederClientexe
+call :cleanInput "%trackerExe%" trackerExe
 call :cleanInput "%trackerPort%" trackerPort
 call :cleanInput "%unattendfileSource%" unattendfileSource
 
 call :cleanInput "%checkIfPythonIsInstalled%" checkIfPythonIsInstalled
 call :cleanInput "%startSeeding%" startSeeding
+call :cleanInput "%startTracker%" startTracker
 
 call :cleanInput "%createTorrent%" createTorrent
+call :cleanInput "%transferMode%" transferMode
 call :cleanInput "%unattendfileType%" unattendfileType
 call :cleanInput "%hashType%" hashType
 call :cleanInput "%repackageDrivers%" repackageDrivers
@@ -330,14 +333,14 @@ call :cleanInput "%customPostImagingScript%" customPostImagingScript
 call :cleanInput "%customPostOobeScript%" customPostOobeScript
 
 ::check deployClientPath, if not valid tell user about it and error out
-if not exist "%deployClientPath%" (echo.
-echo   Serious error: The %deployClientNameNoExtension% path does not exist.
-echo   From %serverConfigFile%: "%deployClientPath%"
-echo   Please make sure this path is valid and specified in %serverConfigFile%
-echo   by using deployClientPath before proceeding further.
-goto end)
-if not exist "%fullpath%" (echo   Error parsing deployClientPath path
-goto end)
+::if not exist "%deployClientPath%" (echo.
+::echo   Serious error: The %deployClientNameNoExtension% path does not exist.
+::echo   From %serverConfigFile%: "%deployClientPath%"
+::echo   Please make sure this path is valid and specified in %serverConfigFile%
+::echo   by using deployClientPath before proceeding further.
+::goto end)
+::if not exist "%fullpath%" (echo   Error parsing deployClientPath path
+::goto end)
 
 ::if driver path not specified set repackage status to false and move on
 if /i "%driversPath%" equ "invalid" (set repackageDrivers=false
@@ -444,7 +447,11 @@ echo   "%seederClientPath%\%seederClientexe%"
 echo   please manually start "%deployClientPath%\%torrentfileName%"
 set startSeeding=false)
 
-::trackerPort check, greater than 0  but less than 65534, set to 3200 by default
+::make sure tracker is available
+if /i not exist "%trackerPath%\%trackerExe%" set startTracker=false
+if /i "%startTracker%" neq "true" (echo     will not start tracker %trackerExe% automatically, please start it manually)
+
+::trackerPort check, greater than 0  but less than 65534, set to 6969 by default
 if %trackerPort% equ "" (echo   error tracker Port wasn't specified, setting it to %default_trackerPort% &set trackerPort=%default_trackerPort%)
 if %trackerPort% leq 0 (echo   tracker port is invalid:"%trackerPort%" changing to port %default_trackerPort%&set trackerPort=%default_trackerPort%)
 if %trackerPort% geq 65534 (echo   error specified port for local tracker is invalid:"%trackerPort%" changing to port %default_trackerPort%&set trackerPort=%default_trackerPort%)
@@ -465,6 +472,9 @@ set startSeeding=%default_startSeeding%)
 
 if /i "%createTorrent%" neq "true" if /i "%createTorrent%" neq "false" (echo   create torrent settings is invalid:"%createTorrent%" setting to %default_createTorrent%
 set createTorrent=%default_createTorrent%)
+
+if /i "%transferMode%" neq "private" if /i "%transferMode%" neq "normal" if /i "%transferMode%" neq "noisy" (echo   network transfer mode settings is invalid:"%transferMode%" setting to %default_transferMode%
+set transferMode=%default_transferMode%)
 
 if /i "%archiveType%" neq "7z" if /i "%archiveType%" neq "zip" (echo  archive type is invalid:"%archiveType%" setting to %default_archiveType%
 set archiveType=%default_archiveType%)
@@ -526,19 +536,20 @@ if /i "%customPostImagingScript%" neq "invalid" call :verifyExtension "%customPo
 if /i "%customPostOobeScript%" neq "invalid" call :verifyExtension "%customPostOobeScript%" customPostOobeScript
 
 ::so if the defaults were icky, and a setting was reset to default, then the new setting will be icky, so need to clean it, again
-call :cleanInput "%pePathToClient%" pePathToClient
 call :cleanInput "%pePathToImages%" pePathToImages
 call :cleanInput "%pePathToDrivers%" pePathToDrivers
 
-call :cleanInput "%seederClientPath%" seederClientPath
 call :cleanInput "%seederClientexe%" seederClientexe
+call :cleanInput "%trackerExe%" trackerExe
 call :cleanInput "%trackerPort%" trackerPort
 call :cleanInput "%unattendfileSource%" unattendfileSource
 
 call :cleanInput "%checkIfPythonIsInstalled%" checkIfPythonIsInstalled
 call :cleanInput "%startSeeding%" startSeeding
+call :cleanInput "%startTracker%" startTracker
 
 call :cleanInput "%createTorrent%" createTorrent
+call :cleanInput "%transferMode%" transferMode
 call :cleanInput "%unattendfileType%" unattendfileType
 call :cleanInput "%hashType%" hashType
 call :cleanInput "%repackageDrivers%" repackageDrivers
@@ -605,6 +616,8 @@ set path9=tools\temp\7z.exe
 set path10=tools\temp\7za.exe
 set path11=resources\7z.exe
 set path12=resources\7za.exe
+set path13=resources\%currentArchitecture%\7z.exe
+set path14=resources\%currentArchitecture%\7za.exe
 
 if exist "%path0%" set sevenz=%path0%
 if exist "%path1%" set sevenz=%path1%
@@ -619,6 +632,8 @@ if exist "%path9%" set sevenz=%path9%
 if exist "%path10%" set sevenz=%path10%
 if exist "%path11%" set sevenz=%path11%
 if exist "%path12%" set sevenz=%path12%
+if exist "%path13%" set sevenz=%path13%
+if exist "%path14%" set sevenz=%path14%
 
 if not exist "%sevenz%" set archiveDrivers=false
 if not exist "%sevenz%" set findHashStatus=false
@@ -715,6 +730,13 @@ goto booleanPrompt
 ::3) createTorrentFile
 :createTorrentFile
 if /i "%createTorrent%" neq "true" goto calculateHash
+if /i "%transferMode%" neq "private" (
+set createTorrentSyntax=--piece-length=16384 --force --md5 --output="%tempdir%\%torrentfileName%" "%wimfilePath%\%wimfileName%"
+)
+if /i "%transferMode%" equ "private" (
+set createTorrentSyntax=--piece-length=16384 --force --md5 --private --output="%tempdir%\%torrentfileName%" "%wimfilePath%\%wimfileName%"
+)
+
 ::find local IPs (to add them as trackers)
 set ip1=invalid
 set ip2=invalid
@@ -795,8 +817,6 @@ goto booleanPrompt
 :createClientConfigurationFile
 set outputConfig=%tempdir%\%clientConfigFile%
 
-echo configFilesLocation=%pePathToClient%>>"%outputConfig%"
-
 echo. >>"%outputConfig%"
 
 echo ::instance specific information::>>"%outputConfig%"
@@ -805,7 +825,8 @@ echo imageIndex=^%wimIndex%>>"%outputConfig%"
 echo unattendfileName=%unattendfileName%>>"%outputConfig%"
 echo driversArchiveName=%driverArchiveName%.%archiveType%>>"%outputConfig%"
 echo torrentfileName=%torrentfileName%>>"%outputConfig%"
-echo hashType=%hashType%>>"%outputConfig%"
+echo transferMode=^%transferMode%>>"%outputConfig%"
+echo hashType=^%hashType%>>"%outputConfig%"
 echo hashData=^%hashData%>>"%outputConfig%"
 
 echo. >>"%outputConfig%"
@@ -891,12 +912,19 @@ copy /y "%unattendfileFullPath%" "%deployClientPath%\%unattendFileName%"
 ::8) and finally: startseeding
 ::if a torrent was never created, then don't move or seed it
 :startSeeding
-if /i "%createTorrent%" neq "true" goto end
-if /i "%startSeeding%" neq "true" goto end
+if /i "%createTorrent%" neq "true" goto startTracker
+if /i "%startSeeding%" neq "true" goto startTracker
 
 ::start "" M:\uTorrent\uTorrent.exe /directory "C:\Users\User\desktop" myfile.torrent
 ::start "" Aria2c.exe --seed-ratio=0.0 --enable-dht=false --dir="%userprofile%\desktop" myfile.torrent
 start "" "%seederClientPath%\%seederClientexe%" %seederClientSyntax% "%deployClientPathAbsPath%\%torrentfileName%"
+
+::9) and startTracker
+::if enabling tracker is off or doesn't exist, then don't try to start it
+:startTracker
+if /i "%startTracker%" neq "true" goto end
+
+start "" "%trackerPath%\%trackerExe%" --port=%trackerPort%
 
 
 goto end
