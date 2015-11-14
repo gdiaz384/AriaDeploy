@@ -16,15 +16,15 @@ Currently AriaDeploy supports all Windows 7-10 x86/x64 and server images, both R
 
 1. Focuses on providing completely automatic deployment
 2. Aims to be a zero-configuration tool for automating simple deployments
-3. Supports fully automated management of drivers/OOBE/hard drive partitioning/booting aspects of deployment "out of the box"
+3. Supports automated configuration of drivers/disk partitioning/OOBE "out of the box"
 4. Aims to be trivial to get started
 5. Seemlessly integrates into existing workflows
-6. Supports complicated scenarios via config.ini files and user specified scripts during extensibility points 
-7. Supports single deployment instances even in heterogenous booting/winpe/hardware enviornments transparently
+6. Supports complicated scenarios using customizable config.ini files custom scripts
+7. Supports deployments in heterogenous booting/pe/hardware enviornments transparently
 8. Eliminates dependency on fragile and configuration intensive multicasting technology
-9. Unlike unicasting based solutions, AriaDeploy is scalable whether deploying to 1 or 500 computers
+9. Excellent performance whether deploying to 5 or 500 computers
 10. Has minimal external dependencies
-11. Transparent design built using Free Open Source Software whenever possible and industry standard tools (ADK)
+11. Transparent design built using Free Open Source Software and industry standard tools (ADK)
 
 ## Planned Features include:
 
@@ -78,7 +78,7 @@ Click [here](//github.com/gdiaz384/AriaDeploy/releases) or on "releases" at the 
 
 I have bundled most of the dependencies into the installer, but due to the ADK's non-redistributable clause, I cannot provide prebuilt WinPE images (part of the ADK) for use with AriaDeploy. For similar reasons, I also cannot provide full unattend.xml files, only templates for them.
 
-1. Download and install the [ADK for Windows 10](https://msdn.microsoft.com/en-us/windows/hardware/dn913721.aspx) and/or [Windows 8.1U](https://www.microsoft.com/en-US/download/details.aspx?id=39982). Having both is prefered but just one works. [Win7's AIK] (https://www.microsoft.com/en-us/download/details.aspx?id=5753) and [supplement](https://www.microsoft.com/en-us/download/details.aspx?id=5188) also works.
+1. Download and install the [ADK for Windows 10](https://msdn.microsoft.com/en-us/windows/hardware/dn913721.aspx) and/or [Windows 8.1Update](https://www.microsoft.com/en-US/download/details.aspx?id=39982). Having both is prefered but just one works. [Win7's AIK] (https://www.microsoft.com/en-us/download/details.aspx?id=5753) and [supplement](https://www.microsoft.com/en-us/download/details.aspx?id=5188) also works. All 3 is even better.
 2. (optional) While waiting for the ADKs to download/install (takes a while), go download drivers for WinPE from  [Dell](http://en.community.dell.com/techcenter/enterprise-client/w/wiki/2065.dell-command-deploy-driver-packs-for-enterprise-client-os-deployment), [Lenovo](https://support.lenovo.com/us/en/documents/ht074984) and [HP](http://www8.hp.com/us/en/ads/clientmanagement/drivers-pack.html) 
 3. (optional) extract the PE drivers to the appropriate folders: AriaDeploy\drivers\WinPE\5_x\x64 or 10_x86
 4. (optional) Also get the [generic RTM unattend.xml files](https://github.com/gdiaz384/AriaDeploy/releases) and here for the [MS license keys to use when deploying systems](https://technet.microsoft.com/en-us/library/jj612867.aspx)
@@ -98,8 +98,8 @@ In Development: 0.4.0a
 ::gparted can HFS+, rEFInd can boot, live distros are common, just need to find one that can access NFS/CIFS shares easily
 ::might need to convert batch script to .sh so maybe AriaDeployForMac
 1.1.0 added optional 7z deployment scenario
-1.0.0 formalized "deployment on a stick" and installer scenarios
-0.4.1 added heterogenous hardware support using WMI, (requires WMI components in PE images however), streamlined installation files
+1.0.0 formalized and streamlined "deployment on a stick" and installer scenarios
+0.4.1 added heterogenous hardware support using WMI, (requires WMI components in PE images however)
 0.4.0 added support for "deployment on a stick" scenarios (by replacing qTorrent with py3bt_tracker), made server architecture agnostic, bug fixed AriaDeploy.exe
 0.3.1 refractored code, improved overall reliability, created "installer", switched to FOSS qTorrent over uTorrent for server aspect, and reduced requirements
 0.3 refractored code, addedUI, improved client side reliability, changed name to "AiraDeploy"
@@ -109,6 +109,4 @@ In Development: 0.4.0a
 
 ## License:
 Pick your License: GPL (any)
-
-If I get any questions on licensing, I'm changing this to "beerware" and will refuse to elaborate further.
 

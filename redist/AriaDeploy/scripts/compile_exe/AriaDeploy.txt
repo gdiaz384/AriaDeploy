@@ -17,6 +17,7 @@
 #include <TreeViewConstants.au3>
 #include <UpdownConstants.au3>
 #include <FileConstants.au3.>
+#include <File.au3>
 #NoTrayIcon
 
 $myname=StringTrimRight(@ScriptName,4)
@@ -29,6 +30,7 @@ $wimfile="invalid"
 $driverPath="invalid"
 $index="invalid"
 $myString=""
+$myStringArgumentsOnly=""
 
 ;styleAndPositioning
 $fontLarge=12
@@ -55,7 +57,7 @@ $longBoxWidth=$windowWidth/100*20
 $normalBoxWidth=$windowWidth/100*10
 $boxHeight=$windowHeight/100*7
 
-$hashRadioHorizPos=$leftMostVertialAlign+30
+$hashRadioHorizPos=$leftMostVertialAlign*2+30
 $hashRadioVertPos=$middleHorizontalAlign+18
 
 $unattendRadioHorizPos=$windowWidth/100*55
@@ -73,7 +75,8 @@ GUICtrlSetFont (-1,$fontLarge,$bold)
 ;wim line
 GUICTRLCreateLabel ("Image Path:", $leftMostVertialAlign, $secondToTopWimAlign,$windowWidth/100*14)
 GUICtrlSetFont  (-1,$fontLarge,$bold)
-$wimPathBox = GUICtrlCreateEdit("", $secondMostVertialAlign, $secondToTopWimAlign, $extraLongBoxWidth, $boxHeight,$ES_AUTOVSCROLL)
+$wimPathBox = GUICtrlCreateInput("", $secondMostVertialAlign, $secondToTopWimAlign, $extraLongBoxWidth, $boxHeight)
+GUICtrlSetTip(-1, "Enter the path of the wim or esd image")
 GUICtrlSetFont (-1,$fontNormal)
 $browseWimButton=GUICtrlCreateButton("Browse...", $thirdVertialAlign, $secondToTopWimAlign, $normalBoxWidth,$boxHeight)
 GUICtrlSetOnEvent($browseWimButton,"selectImage")
@@ -81,22 +84,25 @@ GUICtrlSetFont (-1,$fontNormal,$bold)
 
 GUICTRLCreateLabel ("Index #:", $windowWidth/100*90, $windowHeight/100*15)
 GUICtrlSetFont (-1,$fontNormal)
-$indexBox = GUICtrlCreateEdit("", $windowWidth/100*91, $secondToTopWimAlign, 20, $boxHeight,$ES_AUTOVSCROLL)
+$indexBox = GUICtrlCreateInput("", $windowWidth/100*91, $secondToTopWimAlign, 20, $boxHeight,$ES_NUMBER)
 GUICtrlSetData(-1,1)
 GUICtrlSetFont (-1,$fontNormal)
 
 ;driver line
 GUICTRLCreateLabel ("Driver Path:", $leftMostVertialAlign, $thirdToTopWimAlign,$windowWidth/100*14)
 GUICtrlSetFont (-1,$fontLarge,$bold)
-$driverPathBox = GUICtrlCreateEdit("", $secondMostVertialAlign, $thirdToTopWimAlign, $extraLongBoxWidth, $boxHeight,$ES_AUTOVSCROLL)
+$driverPathBox = GUICtrlCreateInput("", $secondMostVertialAlign, $thirdToTopWimAlign, $extraLongBoxWidth, $boxHeight)
+GUICtrlSetTip(-1, "Enter the full path to the raw drivers (optional)")
 GUICtrlSetFont (-1,$fontNormal)
 $browseDriverButton=GUICtrlCreateButton("Browse...", $thirdVertialAlign, $thirdToTopWimAlign, $normalBoxWidth,$boxHeight)
 GUICtrlSetOnEvent($browseDriverButton,"selectDriverPath")
 GUICtrlSetFont (-1,$fontNormal,$bold)
 
 ;HashCheck
-$hashCheckbox = GUICtrlCreateCheckbox("Enable Hash Check (Increases Deployment Time) ", $leftMostVertialAlign, $middleHorizontalAlign, $windowWidth/100*45)
+$hashCheckbox = GUICtrlCreateCheckbox("Enable Hash Check", $leftMostVertialAlign*2, $middleHorizontalAlign, $windowWidth/100*45)
 GUICtrlSetOnEvent(-1,"toggleHashRadioStatus")
+GUICtrlSetState(-1,$GUI_CHECKED)
+GUICtrlSetTip(-1, "Increases reliability but images take longer to deploy")
 GUICtrlSetFont (-1,$fontSmall,$bold)
 GUIStartGroup()
 $radio_hash_crc32 = GUICtrlCreateRadio("CRC32 (fastest) ", $hashRadioHorizPos,$hashRadioVertPos)
@@ -117,11 +123,13 @@ $unattendCheckbox = GUICtrlCreateCheckbox("Enable unattend.xml file ", $windowWi
 GUICtrlSetOnEvent(-1,"toggleUnattendRadioStatus")
 GUICtrlSetFont (-1,$fontSmall,$bold)
 GUIStartGroup()
-$radio_unattend_RTM = GUICtrlCreateRadio('RTM (Autologin as "User") ', $unattendRadioHorizPos, $unattendRadioVertPos)
+$radio_unattend_RTM = GUICtrlCreateRadio('RTM', $unattendRadioHorizPos, $unattendRadioVertPos)
 GUICtrlSetState(-1, $GUI_DISABLE)
+GUICtrlSetTip(-1, 'Autologin as "User"')
 GUICtrlSetFont (-1,$fontVerySmall,$bold)
-$radio_unattend_advanced = GUICtrlCreateRadio("Advanced (Administrator->Misc\Setup\Sysprepcleanup)    ", $unattendRadioHorizPos, $unattendRadioVertPos+18)
+$radio_unattend_advanced = GUICtrlCreateRadio("Advanced         ", $unattendRadioHorizPos, $unattendRadioVertPos+18)
 GUICtrlSetState(-1, $GUI_DISABLE)
+GUICtrlSetTip(-1, 'Autologin as Administrator and launch Misc\Setup\Sysprepcleanup.bat')
 GUICtrlSetFont (-1,$fontVerySmall,$bold)
 $radio_unattend_custom = GUICtrlCreateRadio(" ", $unattendRadioHorizPos, $unattendRadioVertPos+36)
 GUICtrlSetOnEvent($radio_unattend_custom,"selectXML")
@@ -129,6 +137,7 @@ GUICtrlSetState(-1, $GUI_DISABLE)
 GUICtrlSetFont (-1,$fontVerySmall,$bold)
 $unattendBrowseButton=GUICtrlCreateButton("Browse...", $unattendRadioHorizPos+18, $unattendRadioVertPos+40, $normalBoxWidth-5,$boxHeight-5)
 GUICtrlSetOnEvent($unattendBrowseButton,"selectXML")
+GUICtrlSetTip(-1, 'Select a custom answer file')
 GUICtrlSetState(-1, $GUI_DISABLE)
 GUICtrlSetFont (-1,$fontVerySmall,$bold)
 
@@ -143,7 +152,11 @@ GUICtrlSetFont  (-1,$fontLarge,$bold)
 $currentString=GUICTRLCreateLabel ($mystring, $windowWidth/100*1, $windowHeight/100*96,$windowWidth*2,$windowHeight/100*4)
 GUICtrlSetFont (-1,$fontVerySmall,$bold)
 GUICtrlSetState($currentString, $GUI_HIDE)
+$currentStringContextMenu=GUICtrlCreateContextMenu($currentString)
+$currentStringCopy=GUICtrlCreateMenuItem("copy",$currentStringContextMenu)
+GUICtrlSetOnEvent($currentStringCopy,"copyCurrentString")
 
+toggleHashRadioStatus()
 updateState()
 
 ;some required gui stuffs:display mainWindow and put the application to sleep until it's needed
@@ -154,143 +167,183 @@ wend
 
 
 Func startDeploy()
-updateState()
+    updateState()
+    GUISetState(@SW_DISABLE,$mainWindow)
 
-if GUICtrlRead($wimPathBox) = "" then
-	MsgBox($MB_SYSTEMMODAL, "Image File Error", "Please specify a valid .wim for deployment ")
-	return
-endif
+    if GUICtrlRead($wimPathBox) = "" then
+        MsgBox($MB_SYSTEMMODAL, "Image File Error", "Please specify a valid .wim for deployment ")
+        return
+    endif
 
-if $index = "" then
-	MsgBox($MB_SYSTEMMODAL, "Index Error", "Please specify a valid index ")
-	return
-endif
+    if $index = "" then
+        MsgBox($MB_SYSTEMMODAL, "Index Error", "Please specify a valid index ")
+        return
+    endif
 
-if $driverPath="invalid" then
-	$driverPath=""
-endif
+    if $driverPath="invalid" then
+        $driverPath=""
+    endif
 
-;MsgBox($MB_SYSTEMMODAL, "Final", $myString)
+    ;$tempFileNameAndPath=_TempFile(@TempDir & "\", "temp_", ".cmd", Default)
+    $tempFileNameAndPath=_TempFile(@TempDir & "\", "temp_", ".cmd")
+    $myfile=FileOpen($tempFileNameAndPath, $FO_APPEND)
+    FileWriteLine($myfile,'@pushd "' & @ScriptDir & '"')
+    FileWriteLine($myfile,$myString)
+    FileClose($myfile)
 
-GUIDelete()
-Run("cmd.exe") 
-WinWaitActive("Administrator: C:\Windows\system32\cmd.exe")
-Send('pushd "' & @ScriptDir & '"')
-Send("{ENTER}")
-Send($myString)
-Send("{ENTER}")
-exit
+    ;$command='"' & @ScriptDir & "\" & $myName & '.bat" ' & $myStringArgumentsOnly
+
+    ;MsgBox($MB_SYSTEMMODAL, "Final", $myString)
+    ;MsgBox($MB_SYSTEMMODAL, "Final", $command)
+    ;MsgBox($MB_SYSTEMMODAL, "Final", @comspec & ' /k ' & ' "' & $tempFileNameAndPath & '" ')
+
+    sleep(100)
+    ;Run(@comspec, " /k " & $command)
+    Run(@comspec & ' /k ' & ' "' & $tempFileNameAndPath & '" ')
+
+    ;GUIDelete()
+    ;Run("cmd.exe") 
+    ;WinWaitActive("Administrator: C:\Windows\system32\cmd.exe")
+    ;Send('pushd "' & @ScriptDir & '"')
+    ;Send("{ENTER}")
+    ;Send($myString)
+    ;Send("{ENTER}")
+    ;exit
+
+    sleep(4000)
+    GUISetState(@SW_ENABLE,$mainWindow)
+    FileDelete($tempFileNameAndPath)
 endFunc
 
 Func updateState()
-$wimfile=GUICtrlRead($wimPathBox)
-$index=GUICtrlRead($indexBox)
-$driverPath=GUICtrlRead($driverPathBox)
+    $wimfile=GUICtrlRead($wimPathBox)
+    $index=GUICtrlRead($indexBox)
+    $driverPath=GUICtrlRead($driverPathBox)
 
-if $hashRadioStatus<>"disabled" then
-	if GUICtrlRead($radio_hash_crc32) = $GUI_CHECKED then
-		$hashType="crc32"
-	elseif GUICtrlRead($radio_hash_crc64) = $GUI_CHECKED then
-		$hashType="crc64"
-	elseif GUICtrlRead($radio_hash_sha1)  = $GUI_CHECKED then
-		$hashType="sha1"
-	elseif GUICtrlRead($radio_hash_sha256)  = $GUI_CHECKED then
-		$hashType="sha256"	
-	endif
-elseif $hashRadioStatus="disabled" then
-	$hashType=""
-endif
+    if $hashRadioStatus<>"disabled" then
+        if GUICtrlRead($radio_hash_crc32) = $GUI_CHECKED then
+            $hashType="crc32"
+        elseif GUICtrlRead($radio_hash_crc64) = $GUI_CHECKED then
+            $hashType="crc64"
+        elseif GUICtrlRead($radio_hash_sha1)  = $GUI_CHECKED then
+            $hashType="sha1"
+        elseif GUICtrlRead($radio_hash_sha256)  = $GUI_CHECKED then
+            $hashType="sha256"    
+        endif
+    elseif $hashRadioStatus="disabled" then
+        $hashType=""
+    endif
 
-if $unattendRadioStatus<>"disabled" then
-	if GUICtrlRead($radio_unattend_RTM) = $GUI_CHECKED then
-		$unattendType="RTM"
-	elseif GUICtrlRead($radio_unattend_advanced) = $GUI_CHECKED then
-		$unattendType="Advanced"
-	elseif GUICtrlRead($radio_unattend_custom) = $GUI_CHECKED then
-		if $unattendFile<>"invalid" then
-			$unattendType=$unattendFile
-		endif
-	endif
-elseif $unattendRadioStatus="disabled" then
-		$unattendType=""
-endif
+    if $unattendRadioStatus<>"disabled" then
+        if GUICtrlRead($radio_unattend_RTM) = $GUI_CHECKED then
+            $unattendType="RTM"
+        elseif GUICtrlRead($radio_unattend_advanced) = $GUI_CHECKED then
+            $unattendType="Advanced"
+        elseif GUICtrlRead($radio_unattend_custom) = $GUI_CHECKED then
+            if $unattendFile<>"invalid" then
+                $unattendType=$unattendFile
+            endif
+        endif
+    elseif $unattendRadioStatus="disabled" then
+            $unattendType=""
+    endif
 
-if $unattendType="invalid" then
-	$unattendType=""
-endif
+    if $unattendType="invalid" then
+        $unattendType=""
+    endif
 
-;MsgBox($MB_SYSTEMMODAL, "currentState", StringFormat("hashRadioStatus: " & $hashRadioStatus & " hashType: " & $hashType & " unattendRadioStatus: " & $unattendRadioStatus & " unattendType: " & $unattendType))
-$myString=StringFormat($myname & '.bat "' & $wimfile & '" "' & $index & '" "' & $driverPath & '" "' & $hashType & '" "' & $unattendType & '"')
-;MsgBox($MB_SYSTEMMODAL, "Final", $myString)
+    ;MsgBox($MB_SYSTEMMODAL, "currentState", StringFormat("hashRadioStatus: " & $hashRadioStatus & " hashType: " & $hashType & " unattendRadioStatus: " & $unattendRadioStatus & " unattendType: " & $unattendType))
+    $myString=StringFormat($myname & '.bat "' & $wimfile & '" "' & $index & '" "' & $driverPath & '" "' & $hashType & '" "' & $unattendType & '"')
+    $myStringArgumentsOnly=StringFormat(' "' & $wimfile & '" "' & $index & '" "' & $driverPath & '" "' & $hashType & '" "' & $unattendType & '"')
+    ;MsgBox($MB_SYSTEMMODAL, "Final", $myString)
+    ;MsgBox($MB_SYSTEMMODAL, "stringFormat", $myStringArgumentsOnly)
 
-GUICtrlSetData($currentString,$myString)
+    GUICtrlSetData($currentString,$myString)
+    GUICtrlSetTip($currentString,$myString)
 EndFunc
 
 ;3 cases, open wim, open driver folder, open .xml
-Func selectImage()	
-;FileOpenDialog returns fully qulified path of chosen file
-	$selectedFile = FileOpenDialog("Choose file...", @DesktopDir, "Images (*.wim;*.esd;*.swm)",$FD_FILEMUSTEXIST)
-	if not @error then
-		GUICtrlSetData($wimPathBox,$selectedFile)
-	endif
-updateState()
+Func selectImage()
+    GUISetState(@SW_DISABLE, $mainWindow)
+    ;FileOpenDialog returns fully qulified path of chosen file
+    $selectedFile = FileOpenDialog("Choose file...", @DesktopDir, "Images (*.wim;*.esd;*.swm)",$FD_FILEMUSTEXIST)
+    if not @error then
+        GUICtrlSetData($wimPathBox,$selectedFile)
+    endif
+    updateState()
+    enableMainWindow()
 EndFunc
 
 Func selectDriverPath ()
-	$selectedFolder = FileSelectFolder("Select a folder...", @DesktopDir)
-	if not @error then
-		GUICtrlSetData($driverPathBox,$selectedFolder)
-	endif
-updateState()
+    GUISetState(@SW_DISABLE, $mainWindow)
+    $selectedFolder = FileSelectFolder("Select a folder...", @DesktopDir)
+    if not @error then
+        GUICtrlSetData($driverPathBox,$selectedFolder)
+    endif
+    updateState()    
+    enableMainWindow()
 EndFunc
 
 Func selectXML ()
-	GUICtrlSetState($radio_unattend_custom,$GUI_CHECKED)
-	$selectedFile = FileOpenDialog("Choose file...", @DesktopDir, "unattend (*.xml)",$FD_FILEMUSTEXIST)
-	if not @error then
-		$unattendFile=$selectedFile
-	endif
-updateState()
+    GUICtrlSetState($radio_unattend_custom,$GUI_CHECKED)
+    GUISetState(@SW_DISABLE, $mainWindow)
+    $selectedFile = FileOpenDialog("Choose file...", @DesktopDir, "unattend (*.xml)",$FD_FILEMUSTEXIST)
+    if not @error then
+        $unattendFile=$selectedFile
+    endif
+    updateState()
+    enableMainWindow()
 EndFunc
 
 Func toggleHashRadioStatus()
-	If $hashRadioStatus = "disabled" Then
-		GUICtrlSetState($radio_hash_crc32,$GUI_ENABLE+$GUI_CHECKED)
-		GUICtrlSetState($radio_hash_crc64,$GUI_ENABLE)
-		GUICtrlSetState($radio_hash_sha1,$GUI_ENABLE)
-		GUICtrlSetState($radio_hash_sha256,$GUI_ENABLE)
-		$hashRadioStatus="enabled"
-	elseIf $hashRadioStatus = "enabled" then
-		GUICtrlSetState($radio_hash_crc32,$GUI_DISABLE)
-		GUICtrlSetState($radio_hash_crc64,$GUI_DISABLE)
-		GUICtrlSetState($radio_hash_sha1,$GUI_DISABLE)
-		GUICtrlSetState($radio_hash_sha256,$GUI_DISABLE)
-		$hashRadioStatus="disabled"
-	endIf
-updateState()
+    If $hashRadioStatus = "disabled" Then
+        GUICtrlSetState($radio_hash_crc32,$GUI_ENABLE+$GUI_CHECKED)
+        GUICtrlSetState($radio_hash_crc64,$GUI_ENABLE)
+        GUICtrlSetState($radio_hash_sha1,$GUI_ENABLE)
+        GUICtrlSetState($radio_hash_sha256,$GUI_ENABLE)
+        $hashRadioStatus="enabled"
+    elseIf $hashRadioStatus = "enabled" then
+        GUICtrlSetState($radio_hash_crc32,$GUI_DISABLE)
+        GUICtrlSetState($radio_hash_crc64,$GUI_DISABLE)
+        GUICtrlSetState($radio_hash_sha1,$GUI_DISABLE)
+        GUICtrlSetState($radio_hash_sha256,$GUI_DISABLE)
+        $hashRadioStatus="disabled"
+    endIf
+    updateState()
 EndFunc
 
 Func toggleUnattendRadioStatus()
-	If $unattendRadioStatus = "disabled" Then
-		GUICtrlSetState($radio_unattend_RTM,$GUI_ENABLE+$GUI_CHECKED)
-		GUICtrlSetState($radio_unattend_advanced,$GUI_ENABLE)
-		GUICtrlSetState($radio_unattend_custom,$GUI_ENABLE)
-		GUICtrlSetState($unattendBrowseButton,$GUI_ENABLE)
-		$unattendRadioStatus="enabled"
-	elseIf $unattendRadioStatus = "enabled" then
-		GUICtrlSetState($radio_unattend_RTM,$GUI_DISABLE)
-		GUICtrlSetState($radio_unattend_advanced,$GUI_DISABLE)
-		GUICtrlSetState($radio_unattend_custom,$GUI_DISABLE)
-		GUICtrlSetState($unattendBrowseButton,$GUI_DISABLE)
-		$unattendRadioStatus="disabled"
-	endIf
-updateState()
+    If $unattendRadioStatus = "disabled" Then
+        GUICtrlSetState($radio_unattend_RTM,$GUI_ENABLE+$GUI_CHECKED)
+        GUICtrlSetState($radio_unattend_advanced,$GUI_ENABLE)
+        GUICtrlSetState($radio_unattend_custom,$GUI_ENABLE)
+        GUICtrlSetState($unattendBrowseButton,$GUI_ENABLE)
+        $unattendRadioStatus="enabled"
+    elseIf $unattendRadioStatus = "enabled" then
+        GUICtrlSetState($radio_unattend_RTM,$GUI_DISABLE)
+        GUICtrlSetState($radio_unattend_advanced,$GUI_DISABLE)
+        GUICtrlSetState($radio_unattend_custom,$GUI_DISABLE)
+        GUICtrlSetState($unattendBrowseButton,$GUI_DISABLE)
+        $unattendRadioStatus="disabled"
+    endIf
+    updateState()
 EndFunc
 
 Func advancedFunctionality()
-	GUICtrlSetState($currentString, $GUI_SHOW)
-	MsgBox($MB_SYSTEMMODAL, "Advanced Options", "Please edit " & @ScriptDir & "\" & $myName & ".ini for advanced functionality.")
-	updateState()
+    GUICtrlSetState($currentString, $GUI_SHOW)
+    GUISetState(@SW_DISABLE, $mainWindow)
+    MsgBox($MB_SYSTEMMODAL, "Advanced Options", "Please edit " & @ScriptDir & "\" & $myName & ".ini for advanced functionality.")
+    updateState()
+    enableMainWindow()
+EndFunc
+
+Func copyCurrentString()
+    ClipPut(GUICtrlRead($currentString))
+EndFunc
+
+Func enableMainWindow()
+    GUISetState(@SW_ENABLE,$mainWindow)
+    WinActivate($mainWindow)
 EndFunc
 
 ;exit program
@@ -298,13 +351,13 @@ Func gui_exit()
 ; Note: At this point @GUI_CtrlId would equal $GUI_EVENT_CLOSE,
 ; and @GUI_WinHandle would equal $mainWindow
 if @gui_winhandle = $mainWindow then
-	Exit
+    Exit
 endif
 
 ;guiSwitch($mainWindow)
 if @gui_winhandle = $secondaryWindow then
-	guiSwitch($secondaryWindow)
-	GUIDelete()
+    guiSwitch($secondaryWindow)
+    GUIDelete()
 endif
 
 EndFunc
