@@ -1,20 +1,30 @@
 UI:
-Bug: AriaDeploy.exe does not show image file in GUI if name is too long (2nd line, should scroll instead) -done
-Bug: AriaDeploy.exe can mess up typing settings if user presses a key in the middle of the transfer (should transfer entire line immediately) -done
-Bug: server 2012 cmd box case sensitive (start cmd prompt with command to run in it directly) -done
-Bug: it should not clobber itself post deployment (or freeze randomly-prolly only when being compiled dynamicly) -done
-Bug: Windows should be child-windows not fully independent to prevent multiple-clicking -done
 NewFunct: index button should run dism /get-imageinfo and also /index with the current index
 
 WinPE:
-NewFunct: add WMI support and windowsPE autoinstall + detection of drivers (using addDrivers.bat)
+NewFunct: add WMI + to support automatic detection of model drivers (using addDrivers.bat for PE or integrate directly into client)
 -dependency: rewrite update.bat to autoinstall WMI packages into WinPE (3,4?,5,10)
+NewFunct: create windowsPE autogenerate script
 UI: write/rewrite some functionality scripts for win PE (info, start, help, ls, list) -inProgress (but on hold for concept art)
 
-Misc:
-humm: windows 10 recovery
-NewFunct: windows 8 recovery
-backport: update windows 7 misc
+deployment:
+Bug!Important!: unattend.xml files are not copied correctly from the server to the client
+Bug: parsedfullfolderpath in drivers always shows wrong info or invalid unattend.xml tries to copy (can trigger using driver path with spaces and no quotes)
+NewFunct: integrate addDrivers.bat functionality as downloading client\resources\drivers\dell_latittude e6220_win7_x86_drivers.torrent into client
+Docs: Dia control flow diagram -mostlydone, but needs updating and trademark logo
+UI/Rewrite: create stand alone redistributable package (remove DISM/unattend.xml and bundle seperately) -partially done
+NewFunct: write an optional installer.bat to remove any existing folders and recreate them (maybe) -requires 7zip
+Docs: write documentation regarding options in deploy.ini
+Rewrite: if client is set to prompt, display current hard disk configuration
+Rewrite: add native 32-bit deployment capabilities AriaDeploy.bat (resources\x64, x86 folders) -need to test
+NewFunct: add a private torrent flag, would be kinda nice -need to test
+NewFunct: It should be possible to re-seed an existing torrent after closing aria initially -hummm
+Rewrite: verpose copy from-to in scripts (for client especially)
+Rewrite: detect resuming in an GPT->MBR switched scenario, as in if the restart partition table format doesn't match the one -humm
+-required by the current boot mode, then start over completely (repartition+redownload)
+Rewrite: maybe could mark targettemplocation as hidden and system, maybe modify permissions for it
+NewFunct: formalize deployment on a stick scenario (bundled PE's)
+NewFunct: formalize installation-based scenario (with u/qTorrent?)
 
 autoimage:
 Bug: detects boot.wims as deployable images (if .wim is <1gb in size toss it out)
@@ -22,24 +32,6 @@ Bug: if no images found, there should be no output (no errors)
 Bug: erase previously selected image enviornmental variable on screen #2 when going back
 UI: improve user interface of final screen (How it looks depends on if complex flag was triggered), remove PE info
 UI: make controls and bi-directionality of script more Clear, and on every screen
-
-deployment:
-Bug: parsedfullfolderpath in drivers always shows wrong info or invalid unattend.xml tries to copy (can trigger using driver path with spaces and no quotes)
-NewFunct: integrate addDrivers.bat functionality as downloading client\resources\drivers\dell_latittude e6220_win7_x86_drivers.torrent into client
-Docs: create full control flow diagram using Dia -mostlydone, but needs updating and trademark logo
-UI/Rewrite: create stand alone redistributable package (remove DISM/unattend.xml) -done
-NewFunct: write an optional installer.bat to remove any existing folders and recreate them (maybe) -requires 7zip
-Docs: write documentation regarding options in deploy.ini
-Docs: write documentation regarding licensing information -done
-Rewrite: if client prompts, display current hard disk configuration
-Rewrite: add native 32-bit deployment capabilities AriaDeploy.bat (resources\x64, x86 folders) -need to test
-NewFunct: add a private torrent flag, would be kinda nice -need to test
-NewFunct: It should be possible to re-seed an existing torrent after closing aria initially
-Rewrite: verpose copy from-to in scripts (for client especially)
-Rewrite: detect resuming in an GPT->MBR switched scenario, as in if the restart partition table format doesn't match the one -humm
--required by the current boot mode, then start over completely (repartition+redownload)
-Rewrite: maybe could mark targettemplocation as hidden and system, maybe modify permissions for it
-Bug: when reading settings from file, the only settings not read in should be those not commented out, for eol=: -done
 
 Bugs tools:
 Bug: convertwim (old?) (from flash drive) using winpe v5 x64 doesn't uefi boot when converted to iso (from misc) (180mb vs 225mb)
@@ -57,6 +49,11 @@ Rewrite: detailed Workflow for generic capture image scenario (rtm->import win7x
 Docs: Add control flow diagrams to presentation
 Docs: Add suggested usageGuide for MDT/Scripts -scripts as another extension of MDT in certain scenarios
 NewFunct: Add suggested deployment architecture to presentation (incl scalability, separating out, having multiple seeder(s))
+
+Misc:
+humm: windows 10 recovery
+NewFunct: windows 8 recovery
+backport: update windows 7 misc
 
 Long Term:
 create GUI frontend? -partiallydone, any other ones needed?, compress into single installer to perserve folder structure or add "info wim" functionality to GUI

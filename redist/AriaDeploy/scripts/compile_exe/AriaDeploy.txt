@@ -172,11 +172,13 @@ Func startDeploy()
 
     if GUICtrlRead($wimPathBox) = "" then
         MsgBox($MB_SYSTEMMODAL, "Image File Error", "Please specify a valid .wim for deployment ")
+        enableMainWindow()
         return
     endif
 
     if $index = "" then
         MsgBox($MB_SYSTEMMODAL, "Index Error", "Please specify a valid index ")
+        enableMainWindow()
         return
     endif
 
