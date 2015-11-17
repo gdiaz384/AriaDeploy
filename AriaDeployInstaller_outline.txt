@@ -1,0 +1,54 @@
+AriaDeploy "Installer"
+
+Ask:
+extract to folder (installer scenario)
+-if so also ask to share path automatically (create temp user)
+-and input credentials into credetnails.txt
+-ask to install FTP server (?)
+ask to build pe images
+
+
+Extract contents to specified folder 
+(default if exist D:, D:\workspace\AriaDeploy
+else %userprofile%\desktop\AriaDeploy 
+or c:\workspace\AriaDeploy)
+
+create network share if installer scenario
+-remove if already exists, 
+
+-can build pe from kits for deployment on a stick scenarios
+-2 modes? 1) normal installer mode
+(needed for larger deployments with persistent settings and to install drivers(?))
+2) deployment on a stick mode
+reccomended for small (1-15) deployments and testing
+-or both
+
+detect the kits
+
+detect if installed
+1)
+registry
+SET KitsRootRegValueName=KitsRoot81
+SET KitsRootRegValueName=KitsRoot10
+HKLM\Software\Wow6432Node\Microsoft\Windows Kits\Installed Roots
+FOR /F "skip=2 tokens=2*" %%i IN ('REG QUERY "%regKeyPath%" /v %KitsRootRegValueName%') DO (SET KitsRoot=%%j)
+SET DandIRoot=%KitsRoot%Assessment and Deployment Kit\Deployment Tools
+2) (lower priority) installation default)
+no reg settings for AIK for Win7, so just check at
+C:\Program Files\Windows AIK
+C:\Program Files (x86)\Windows Kits\8.1
+C:\Program Files\Windows Kits\8.1
+C:\Program Files (x86)\Windows Kits\10
+C:\Program Files\Windows Kits\10
+then make sure pe components are also found
+
+mount the default image, 
+update the drivers, components and scripts (and maybe background)
+
+then capture .wim (name appropriately) and then turn .wim into .isos
+
+maybe get a better FTP server?, command line one would be ideal
+"ftpd install service" or w/e, copy ftpd.ini to c:\program files\ftp\fptd.ini
+Could set up FTP server automatically that way
+
+
