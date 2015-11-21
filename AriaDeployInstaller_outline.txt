@@ -5,7 +5,7 @@ extract to folder (installer scenario)
 -if so also ask to share path automatically (create temp user)
 -and input credentials into credetnails.txt
 -ask to install FTP server (?)
-ask to build pe images
+ask to build pe images (.wim and .iso)
 
 
 Extract contents to specified folder 
