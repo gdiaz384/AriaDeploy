@@ -19,7 +19,7 @@ Currently AriaDeploy supports all Windows 7-10 x86/x64 and server images, both R
 3. Supports automated configuration of drivers/disk partitioning/OOBE "out of the box"
 4. Aims to be trivial to get started
 5. Seemlessly integrates into existing workflows
-6. Supports complicated scenarios using customizable config.ini files custom scripts
+6. Supports complicated scenarios using customizable config.ini files and custom scripts
 7. Supports deployments in heterogenous booting/pe/hardware enviornments transparently
 8. Eliminates dependency on fragile and configuration intensive multicasting technology
 9. Excellent performance whether deploying to 5 or 500 computers
@@ -28,9 +28,9 @@ Currently AriaDeploy supports all Windows 7-10 x86/x64 and server images, both R
 
 ## Planned Features include:
 
-1. "Installation" script to prebuild Windows PE .wims/isos and transfer the relevant files
-2. Support for deployment on heterogenous hardware systems (via adding WMI packages to WinPE)
-3. "Deployment-on-a-stick" scenarios
+1. "Installation" script to prebuild Windows PE .wims/isos and transfer the relevant files -inprogress
+2. Support for deployment on heterogenous hardware systems (via adding WMI packages to WinPE) -done
+3. "Deployment-on-a-stick" scenarios -inprogress
 4. Automated deployment image and tools integration into recovery partitions (this is useful to OEMs)
 5. AriaDeploy for OS/X (will be a while)
 
@@ -48,10 +48,10 @@ Currently AriaDeploy supports all Windows 7-10 x86/x64 and server images, both R
 
 1. will not capture images or deploy virtual disks (.vhd/vmdk files)
 2. will NOT preserve user data on target systems
-3. will not download the correct drivers for you
+3. will not download adks or the correct drivers for you
 4. will not determine that windows version X cannot boot as configured on target system Y due to incompatability Z
-5. will not autogenerate unattend.xml files (use MDT for that instead) or input the correct product key for you in the unattend.xml templates
-6. is not a full deployment solution
+5. will not autogenerate unattend.xml files (use MDT for that instead) or input the correct product key for you in the provided unattend.xml templates
+6. is a just tool, not a full system lifecycle deployment solution
 7. is not dependent upon WDS/MDT/SCCM/Active Directory
 
 ## Typical Usage Guide:
@@ -72,13 +72,15 @@ Currently AriaDeploy supports all Windows 7-10 x86/x64 and server images, both R
 
 ## Download:
 
-Click [here](//github.com/gdiaz384/AriaDeploy/releases) or on "releases" at the top to download the latest version.
+Click [here](//github.com/gdiaz384/AriaDeploy/releases) or on "releases" at the top to download the latest release
+
+For the latest non-release ready version, click on "Download ZIP" using the right info panel 
 
 ## Install guide:
 
 I have bundled most of the dependencies into the installer, but due to the ADK's non-redistributable clause, I cannot provide prebuilt WinPE images (part of the ADK) for use with AriaDeploy. For similar reasons, I also cannot provide full unattend.xml files, only templates for them.
 
-1. Download and install the [ADK for Windows 10](https://msdn.microsoft.com/en-us/windows/hardware/dn913721.aspx) and/or [Windows 8.1Update](https://www.microsoft.com/en-US/download/details.aspx?id=39982). Having both is prefered but just one works. [Win7's AIK] (https://www.microsoft.com/en-us/download/details.aspx?id=5753) and [supplement](https://www.microsoft.com/en-us/download/details.aspx?id=5188) also works. All 3 is even better.
+1. Download and install the [ADK for Windows 10](https://msdn.microsoft.com/en-us/windows/hardware/dn913721.aspx) and/or [Windows 8.1Update](https://www.microsoft.com/en-US/download/details.aspx?id=39982), and/or [Win7's AIK] (https://www.microsoft.com/en-us/download/details.aspx?id=5753) and [supplement](https://www.microsoft.com/en-us/download/details.aspx?id=5188) Having all 3 is prefered for maximum flexibility but just one of the above will also work.
 2. (optional) While waiting for the ADKs to download/install (takes a while), go download drivers for WinPE from  [Dell](http://en.community.dell.com/techcenter/enterprise-client/w/wiki/2065.dell-command-deploy-driver-packs-for-enterprise-client-os-deployment), [Lenovo](https://support.lenovo.com/us/en/documents/ht074984) and [HP](http://www8.hp.com/us/en/ads/clientmanagement/drivers-pack.html) 
 3. (optional) extract the PE drivers to the appropriate folders: AriaDeploy\drivers\WinPE\5_x\x64 or 10_x86
 4. (optional) Also get the [generic RTM unattend.xml files](https://github.com/gdiaz384/AriaDeploy/releases) and here for the [MS license keys to use when deploying systems](https://technet.microsoft.com/en-us/library/jj612867.aspx)
@@ -87,12 +89,11 @@ I have bundled most of the dependencies into the installer, but due to the ADK's
 
 ## Version History/Planning
 
-Note: Anything prior to version 1.0 is alpha/beta quality depending upon release.
-The current focus of development is on architectural improvements and features.
+Note: The current focus of development is on architectural improvements and features.
 
 ```
-Current Version: 0.3.1a
-In Development: 0.4.0a
+Current Version: 0.4.1a
+In Development: 0.4.1b
 
 ::2.0.0 added partial mac support (no drivers)(?) winpe/dism not licensed for use on non-windows systems, 
 ::gparted can HFS+, rEFInd can boot, live distros are common, just need to find one that can access NFS/CIFS shares easily
@@ -109,4 +110,3 @@ In Development: 0.4.0a
 
 ## License:
 Pick your License: GPL (any)
-

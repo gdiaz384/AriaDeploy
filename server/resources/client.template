@@ -60,6 +60,7 @@ set default_enableUnicastFallbackForImage=true
 set default_enableUnicastFallbackForDrivers=true
 set default_pePathToImages=Y:\images
 set default_pePathToDrivers=Y:\updates\drivers
+set default_simpleDriverDeployment=false
 set default_targetTempFilesLocation=recovery\oem
 set default_cmdcolor=normal
 set default_torrentclientexe=aria2c.exe
@@ -157,6 +158,7 @@ set enableUnicastFallbackForImage=%default_enableUnicastFallbackForImage%
 set enableUnicastFallbackForDrivers=%default_enableUnicastFallbackForDrivers%
 set pePathToImages=%default_pePathToImages%
 set pePathToDrivers=%default_pePathToDrivers%
+set simpleDriverDeployment=%default_simpleDriverDeployment%
 set targetTempFilesLocation=%default_targetTempFilesLocation%
 set cmdcolor=%default_cmdcolor%
 set torrentclientexe=%default_torrentclientexe%
@@ -194,6 +196,7 @@ for /f "skip=2 eol=: delims== tokens=1-10" %%i in ('find /i "enableUnicastFallba
 for /f "skip=2 eol=: delims== tokens=1-10" %%i in ('find /i "enableUnicastFallbackForDrivers=" %configfile%') do if /i "%%j" neq "" set enableUnicastFallbackForDrivers=%%j
 for /f "skip=2 eol=: delims== tokens=1-10" %%i in ('find /i "pePathToImages=" %configfile%') do if /i "%%j" neq "" set pePathToImages=%%j
 for /f "skip=2 eol=: delims== tokens=1-10" %%i in ('find /i "pePathToDrivers=" %configfile%') do if /i "%%j" neq "" set pePathToDrivers=%%j
+for /f "skip=2 eol=: delims== tokens=1-10" %%i in ('find /i "simpleDriverDeployment=" %configfile%') do if /i "%%j" neq "" set simpleDriverDeployment=%%j
 for /f "skip=2 eol=: delims== tokens=1-10" %%i in ('find /i "targetTempFilesLocation=" %configfile%') do if /i "%%j" neq "" set targetTempFilesLocation=%%j
 for /f "skip=2 eol=: delims== tokens=1-10" %%i in ('find /i "cmdcolor=" %configfile%') do if /i "%%j" neq "" set cmdcolor=%%j
 for /f "skip=2 eol=: delims== tokens=1-10" %%i in ('find /i "torrentclientexe=" %configfile%') do if /i "%%j" neq "" set torrentclientexe=%%j
@@ -235,6 +238,7 @@ call :cleanInput "%enableUnicastFallbackForImage%" enableUnicastFallbackForImage
 call :cleanInput "%enableUnicastFallbackForDrivers%" enableUnicastFallbackForDrivers
 call :cleanInput "%pePathToImages%" pePathToImages
 call :cleanInput "%pePathToDrivers%" pePathToDrivers
+call :cleanInput "%simpleDriverDeployment%" simpleDriverDeployment
 call :cleanInput "%targetTempFilesLocation%" targetTempFilesLocation
 call :cleanInput "%cmdcolor%" cmdcolor
 call :cleanInput "%torrentclientexe%" torrentclientexe
@@ -312,6 +316,9 @@ if not exist "%pePathToImages%" set pePathToImages=invalid
 if /i "%pePathToImages%" equ "invalid" if exist "%default_pePathToImages%" (echo   path to Image repository does not exist set to default
 set pePathToImages=%default_pePathToImages%)
 
+if /i "%simpleDriverDeployment%" neq "true" if /i "%simpleDriverDeployment%" neq "false" set simpleDriverDeployment=%default_simpleDriverDeployment%
+
+
 if /i "%targetTempFilesLocation%" equ "invalid" set targetTempFilesLocation=%default_targetTempFilesLocation%
 
 ::normal,red,yellow,green,miku,purple,white
@@ -375,6 +382,7 @@ call :cleanInput "%enableUnicastFallbackForImage%" enableUnicastFallbackForImage
 call :cleanInput "%enableUnicastFallbackForDrivers%" enableUnicastFallbackForDrivers
 call :cleanInput "%pePathToImages%" pePathToImages
 call :cleanInput "%pePathToDrivers%" pePathToDrivers
+call :cleanInput "%simpleDriverDeployment%" simpleDriverDeployment
 call :cleanInput "%targetTempFilesLocation%" targetTempFilesLocation
 call :cleanInput "%cmdcolor%" cmdcolor
 call :cleanInput "%torrentclientexe%" torrentclientexe
@@ -593,6 +601,7 @@ diskpart /s %diskLayoutConfig%
 
 if not exist %winDrive%  echo   unspecified error could not detect destination drive for image&goto end
 if /i "%torrentclientexe%" equ "invalid" goto unicastImage
+::this code could reproduce duplicate drive letters on paths maybe
 set targetTempFilesLocation=%winDrive%\%targetTempFilesLocation%
 if not exist "%targetTempFilesLocation%" mkdir "%targetTempFilesLocation%"
 
@@ -798,18 +807,68 @@ goto postInstallingDrivers)
 dism /image:%winDrive% /add-driver /driver:"%targetTempFilesLocation%\drivers" /recurse
 goto postInstallingDrivers
 
-::try finding path via wmi
-:wmic computersystem baseboard get model,name,manufacturer,systemtype /format:list
-::but need to install WMI package into PE images first and then detect if the wmi package is installed
+:: try finding path via wmi
+:: wmic computersystem baseboard get model,name,manufacturer,systemtype /format:list
+:: but need to install WMI package into PE images first and then detect if the wmi package is installed
+:: detect if wmi is installed by wbem\wmic.exe, if found, assume wmi is available, if not, assume not available and goto chechking for simple mode (unicastDrivers)
+:: if available then first check to see if an existing torrent exists either in the client root or the client\resources\drivers folder
+:: if availabe download files (via aria) and apply them, if not available then check to see if unicasting the drivers is available (via a wmi gen path)
 
-::wmi torrents code goes here
+if not exist wbem\wmic.exe (echo   could not find wbem\wmic.exe, please update winPE packages to enable WMI functionality
+goto blindUnicastDrivers)
+
+::gather WMI info
+wmic computersystem get Manufacturer,Model /format:list >rawComputerSystemInfo.txt
+for /f "skip=2 delims== tokens=1-10" %%a in ('find "Manufacturer" rawComputerSystemInfo.txt') do (set manufacturer=%%b)
+for /f "tokens=1-10" %%a in ("%manufacturer%") do set manufacturer=%%a
+for /f "delims=,. tokens=1-10" %%a in ("%manufacturer%") do set manufacturer=%%a
+for /f "skip=2 delims== tokens=1-10" %%a in ('find "Model" rawComputerSystemInfo.txt') do (set model=%%b)
+if exist rawComputerSystemInfo.txt del rawComputerSystemInfo.txt
+
+wmic baseboard get Manufacturer,Product /format:list > rawBaseboardInfo.txt
+for /f "skip=2 delims== tokens=1-10" %%a in ('find "Manufacturer" rawBaseboardInfo.txt') do (set baseboardManufacturer=%%b)
+for /f "tokens=1-10" %%a in ("%baseboardManufacturer%") do set baseboardManufacturer=%%a
+for /f "delims=,. tokens=1-10" %%a in ("%baseboardManufacturer%") do set baseboardManufacturer=%%a
+for /f "skip=2 delims== tokens=1-10" %%a in ('find "Product" rawBaseboardInfo.txt') do (set baseboardProductInfo=%%b)
+if exist rawBaseboardInfo.txt del rawBaseboardInfo.txt
+
+echo Computer Manufacturer:%manufacturer%
+echo Computer Model:%model%
+echo Motherboard Manufacturer:%baseboardManufacturer%
+echo Motherboard:%baseboardProductInfo%
+
+:: wmi torrents code goes here
+:: dell_lattitude e6220_win7_x64.torrent
+:: dell_01mcmn_win7_x64.torrent
+echo   Looking for: "%manufacturer%_%model%_win%wimOSVersion%_%wimArchitecture%.torrent"
+echo   or         "%baseboardManufacturer%_%baseboardProductInfo%_win%wimOSVersion%_%wimArchitecture%.torrent"
+echo   at   %configFilesLocation%
+if exist "%configFilesLocation%\%manufacturer%_%model%_win%wimOSVersion%_%wimArchitecture%.torrent" set driverTorrent=%configFilesLocation%\%manufacturer%_%model%_win%wimOSVersion%_%wimArchitecture%.torrent
+if exist "%configFilesLocation%\%baseboardManufacturer%_%baseboardProductInfo%_win%wimOSVersion%_%wimArchitecture%.torrent" set driverTorrent=%configFilesLocation%\%baseboardManufacturer%_%baseboardProductInfo%_win%wimOSVersion%_%wimArchitecture%.torrent
+if not defined driverTorrent goto wmiUnicastDrivers
+
+::okay so the driver .torrent exists, now to download and apply it
+call "%tempWinPEdir%\%torrentClientExe%" %torrentclientSyntax% "%driverTorrent%"
+dism /image:%winDrive%\ /add-driver /driver:"%targetTempFilesLocation%" /recurse
+goto postInstallingDrivers
 
 ::wmi path code goes here
+:wmiUnicastDrivers
+if exist "%driversFallbackUnicastPath%\%manufacturer%\%model%\win%wimOSVersion%\%wimArchitecture%" set wmiUnicastDriverPath=%driversFallbackUnicastPath%\%manufacturer%\%model%\win%wimOSVersion%\%wimArchitecture%
+if exist "%driversFallbackUnicastPath%\%baseboardManufacturer%\%baseboardProductInfo%\win%wimOSVersion%\%wimArchitecture%" set wmiUnicastDriverPath=%driversFallbackUnicastPath%\%baseboardManufacturer%\%baseboardProductInfo%\win%wimOSVersion%\%wimArchitecture%
+if not defined wmiUnicastDriverPath goto blindUnicastDrivers
+echo   Installing drivers from: "%wmiUnicastDriverPath%"
+dism /image:%winDrive%\ /add-driver /driver:"%wmiUnicastDriverPath%" /recurse
+goto postInstallingDrivers
 
-::if neither the manual WMI torrents nor the wmi path work then try
-::the unicast path (this is equavalent to a blind apply, very dangerous)
-:unicastDrivers
-::if exist "%driversFallbackUnicastPath%" (dism /image:%winDrive%\ /add-driver /driver:"%driversFallbackUnicastPath%" /recurse
+:: if neither the manual WMI torrents nor the wmi path work then try
+:: the unicast path (this is equavalent to a blind apply, very dangerous)
+:: this code is not appropraite for installation based scenarios, but is for a "deployment on a stick" or simple deployment scenario
+:: so how to differentiate?, maybe if simpleDriverDeployment equ true then
+:blindUnicastDrivers
+if /i "%simpleDriverDeployment%" neq "true" goto postInstallingDrivers
+if not exist "%driversFallbackUnicastPath%" goto postInstallingDrivers
+dism /image:%winDrive%\ /add-driver /driver:"%driversFallbackUnicastPath%" /recurse
 ::goto postInstallingDrivers)
 :postInstallingDrivers
 
@@ -908,7 +967,7 @@ set %~2=invalid)
 goto :eof
 :checkWimExtension
 if /i "%rawextension%" neq ".wim" if /i "%rawextension%" neq ".esd" if /i "%rawextension%" neq ".swm" (
-echo    error %rawinput% does not have a valid image file execution: "%rawextension%"
+echo    error %rawinput% does not have a valid image file: "%rawextension%"
 set %~2=invalid)
 goto :eof
 :checkxmlExtension

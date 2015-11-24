@@ -1,30 +1,47 @@
 UI:
-NewFunct: index button should run dism /get-imageinfo and also /index with the current index
+NewFunct: index button should run dism /get-imageinfo and also /index: with the current index
 
 WinPE:
-NewFunct: add WMI + to support automatic detection of model drivers (using addDrivers.bat for PE or integrate directly into client)
--dependency: rewrite update.bat to autoinstall WMI packages into WinPE (3,4?,5,10)
-NewFunct: create windowsPE autogenerate script
+NewFunct: add WMI + to support automatic detection of model drivers (using addDrivers.bat for PE or integrate directly into client) -needs testing
+NewFunct: create windowsPE autogenerate script (see below under deployment)
 UI: write/rewrite some functionality scripts for win PE (info, start, help, ls, list) -inProgress (but on hold for concept art)
 
 deployment:
-Bug!Important!: unattend.xml files are not copied correctly from the server to the client
-Bug: parsedfullfolderpath in drivers always shows wrong info or invalid unattend.xml tries to copy (can trigger using driver path with spaces and no quotes)
-NewFunct: integrate addDrivers.bat functionality as downloading client\resources\drivers\dell_latittude e6220_win7_x86_drivers.torrent into client
+Docs: create diagram showing AiraDeploy server and clients interacting to transfer the .wim file in pretty picture format
+NewFunct: It should be possible to re-seed an existing torrent after closing aria initially -sorta done
+NewFunct: create torrent file for drivers in server for install scenario (Dell_Latittude e6220_win10_x64.torrent)
+-maybe, "specifyManufacturerAndModelAndCreateDriversTorrent" or "createDriversTorrent"=false by default
+-this option is incompatible with archiveDrivers due to possible driver conflicts, so inform and ask user to resolve
+"warning both archiveDrivers and createDriversTorrent are enabled, only 1 is supported per deployment"
+"ArchiveDrivers is for single target hardware deployments"
+"createDriversTorrent is advanced functionality for heterogenous hardware deployments and requires WMI enabled winPE images"
+"Enter 1 to deploy drivers as an archive or 2 to createDriversTorrent instead"
+-ask for user Manufacturer and model, repeat until correct, can take the architecture and os version from image
+-also need to test py3createtorrent to see how well it handles directories
+UI/Rewrite: create stand alone redistributable package (remove DISM/unattend.xml and bundle seperately) -mostly done
+-dependency NewFunct: formalize deployment on a stick scenario 
+--should autodetect .wim images, and \drivers folder (turn on simpledriverdeployment)
+--allow the user to pick unattend file type, and should autodetect any .xml files at the root (as custom)
+--needs to auto-start py3bt_tracker/aria/ftp server and ariadeploy.bat
+--should have prebuilt client/server isos (maybe just 1 and switch between two modes)
+--should it auto-support PXE? maybe with a cross platform pxe server? uefi support?
+-dependency NewFunct: formalize installation-based scenario (with u/qTorrent?)
+--This is going to lend itself more to a uTorrent/qTorrent GUI manager for all the .wim images being deployed
+--although aira as seeder should still work, would need to update client deployment name
+--and client side detection code in order to ask user which .wim to deploy (similar to autoimage)
+-dependency NewFunct: write an optional-ish installer (bat + req 7zip or 7z self exe or packaged installer?)
+--it should also remove any existing folders and recreate them, create .pe images, ask to install aria deploy (enables option: create temp account+psw), set up ftp
 Docs: Dia control flow diagram -mostlydone, but needs updating and trademark logo
-UI/Rewrite: create stand alone redistributable package (remove DISM/unattend.xml and bundle seperately) -partially done
-NewFunct: write an optional installer.bat to remove any existing folders and recreate them (maybe) -requires 7zip
-Docs: write documentation regarding options in deploy.ini
-Rewrite: if client is set to prompt, display current hard disk configuration
+NewFunct: integrate addDrivers.bat functionality as downloading client\resources\drivers\dell_latittude e6220_win7_x86_drivers.torrent into client -need to test
 Rewrite: add native 32-bit deployment capabilities AriaDeploy.bat (resources\x64, x86 folders) -need to test
 NewFunct: add a private torrent flag, would be kinda nice -need to test
-NewFunct: It should be possible to re-seed an existing torrent after closing aria initially -hummm
-Rewrite: verpose copy from-to in scripts (for client especially)
 Rewrite: detect resuming in an GPT->MBR switched scenario, as in if the restart partition table format doesn't match the one -humm
 -required by the current boot mode, then start over completely (repartition+redownload)
-Rewrite: maybe could mark targettemplocation as hidden and system, maybe modify permissions for it
-NewFunct: formalize deployment on a stick scenario (bundled PE's)
-NewFunct: formalize installation-based scenario (with u/qTorrent?)
+Rewrite: verpose copy from-to in scripts (for client especially)
+Docs: write better documentation regarding options in deploy.ini
+Rewrite: if client is set to prompt, display current hard disk configuration
+Rewrite: maybe could mark targettemplocation as hidden and system, maybe modify permissions for it (root folder)
+Bug: using AriaDeploy.exe always starts a 32-bit cmd prompt (check @comspec configuration)
 
 autoimage:
 Bug: detects boot.wims as deployable images (if .wim is <1gb in size toss it out)
@@ -35,8 +52,7 @@ UI: make controls and bi-directionality of script more Clear, and on every scree
 
 Bugs tools:
 Bug: convertwim (old?) (from flash drive) using winpe v5 x64 doesn't uefi boot when converted to iso (from misc) (180mb vs 225mb)
--dependency before "fix" possible: fully isolate existing winPE mgmt scripts (create portable, clickable 
--environment) and integrate into portableTools alongside convertWIM
+-dependency Rewrite: fully isolate existing winPE mgmt scripts (create portable, clickable environment) and integrate into portableTools
 NewFunct: bcdAddPE should allow adding to tools menu on isos\usbs (workaround to multiple boot menus)
 
 Presentation:
@@ -45,10 +61,12 @@ NewFunct: Add suggested image authoring station to presentation (HyperV?)
 NewFunct: description of MDT
 Docs: add MDTShare\Scripts\LiteTouch.vbs to workflow diagram explicitly
 Rewrite: detailed Workflow for generic capture image scenario (rtm->import win7x64_retailDVD)
--also: figure out why it has that weird dependency
+-also: figure out why it has that weird dependency, prolly an "just in case" dependency
 Docs: Add control flow diagrams to presentation
 Docs: Add suggested usageGuide for MDT/Scripts -scripts as another extension of MDT in certain scenarios
 NewFunct: Add suggested deployment architecture to presentation (incl scalability, separating out, having multiple seeder(s))
+
+Add "layers and interlopability slide" to system design presentation concluding that shims are commonly added to ensure backwards compatability, -define interlopability and formalize the concept of an "interface"
 
 Misc:
 humm: windows 10 recovery
@@ -58,3 +76,4 @@ backport: update windows 7 misc
 Long Term:
 create GUI frontend? -partiallydone, any other ones needed?, compress into single installer to perserve folder structure or add "info wim" functionality to GUI
 Macs? (dism/winpe not licensed for use deploying non windows OSs so would need complete re-write)
+

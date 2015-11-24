@@ -51,6 +51,8 @@ set default_clientTargetDisk=0
 set default_clientPartitionLayout=minimal
 set default_enableUnicastFallbackForImage=true
 set default_enableUnicastFallbackForDrivers=true
+::set to true only for single hardware type deployments
+set default_simpleDriverDeployment=false
 set default_targetTempFilesLocation=recovery\oem
 ::normal,red,yellow,green,miku,purple,white
 set default_cmdcolor=normal
@@ -148,6 +150,7 @@ set clientTargetDisk=%default_clientTargetDisk%
 set clientPartitionLayout=%default_clientPartitionLayout%
 set enableUnicastFallbackForImage=%default_enableUnicastFallbackForImage%
 set enableUnicastFallbackForDrivers=%default_enableUnicastFallbackForDrivers%
+set simpleDriverDeployment=%default_simpleDriverDeployment%
 set targetTempFilesLocation=%default_targetTempFilesLocation%
 set cmdcolor=%default_cmdcolor%
 set torrentclientexe=%default_torrentclientexe%
@@ -201,6 +204,7 @@ for /f "skip=2 eol=: delims== tokens=1-10" %%i in ('find /i "clientTargetDisk=" 
 for /f "skip=2 eol=: delims== tokens=1-10" %%i in ('find /i "clientPartitionLayout=" %serverConfigFile%') do if /i "%%j" neq "" set clientPartitionLayout=%%j
 for /f "skip=2 eol=: delims== tokens=1-10" %%i in ('find /i "enableUnicastFallbackForImage=" %serverConfigFile%') do if /i "%%j" neq "" set enableUnicastFallbackForImage=%%j
 for /f "skip=2 eol=: delims== tokens=1-10" %%i in ('find /i "enableUnicastFallbackForDrivers=" %serverConfigFile%') do if /i "%%j" neq "" set enableUnicastFallbackForDrivers=%%j
+for /f "skip=2 eol=: delims== tokens=1-10" %%i in ('find /i "simpleDriverDeployment=" %serverConfigFile%') do if /i "%%j" neq "" set simpleDriverDeployment=%%j
 for /f "skip=2 eol=: delims== tokens=1-10" %%i in ('find /i "targetTempFilesLocation=" %serverConfigFile%') do if /i "%%j" neq "" set targetTempFilesLocation=%%j
 for /f "skip=2 eol=: delims== tokens=1-10" %%i in ('find /i "cmdcolor=" %serverConfigFile%') do if /i "%%j" neq "" set cmdcolor=%%j
 for /f "skip=2 eol=: delims== tokens=1-10" %%i in ('find /i "torrentclientexe=" %serverConfigFile%') do if /i "%%j" neq "" set torrentclientexe=%%j
@@ -217,8 +221,10 @@ for /f "skip=2 eol=: delims== tokens=1-10" %%i in ('find /i "customPostImagingSc
 for /f "skip=2 eol=: delims== tokens=1-10" %%i in ('find /i "customPostOobeScript=" %serverConfigFile%') do if /i "%%j" neq "" set customPostOobeScript=%%j
 :skipReadingServerConfigFile
 
+@echo on
 set currentArchitecture=%processor_architecture%
 if /i "%currentArchitecture%" equ "amd64" set currentArchitecture=x64
+@echo off
 
 ::read from command line
 if not exist "%~1" (echo   error please specify the full path of valid image file. Does not exist:&echo         "%~1"&goto end) else (set rawWimfilePath=%~1)
@@ -269,6 +275,8 @@ call :getWimInfo "%wimfilePath%\%wimfileName%" "%wimIndex%"
 :: D:\AriaDeploy\server \  ..\client  \  %torrentfilename%
 set deployClientPathAbsPath=%cd%\%deployClientPath%
 set resourcesPath=resources\%currentArchitecture%
+echo %resourcesPath%
+goto end
 
 ::initalize script specific variables::
 set tempdir=%temp%\temp%random%
@@ -317,6 +325,7 @@ call :cleanInput "%clientTargetDisk%" clientTargetDisk
 call :cleanInput "%clientPartitionLayout%" clientPartitionLayout
 call :cleanInput "%enableUnicastFallbackForImage%" enableUnicastFallbackForImage
 call :cleanInput "%enableUnicastFallbackForDrivers%" enableUnicastFallbackForDrivers
+call :cleanInput "%simpleDriverDeployment%" simpleDriverDeployment
 call :cleanInput "%targetTempFilesLocation%" targetTempFilesLocation
 call :cleanInput "%cmdcolor%" cmdcolor
 call :cleanInput "%torrentclientexe%" torrentclientexe
@@ -349,7 +358,7 @@ goto postDriverCheck)
 ::if driver path specified, but invalid, set repackageDrivers=false and check with user
 if not exist "%driversPath%" (goto driversInvalidPrompt1)
 
-::if driver path specified and valid, set repackageDrivers=false and parse driversPath
+::if driver path specified and valid, set repackageDrivers=true and parse driversPath
 set repackageDrivers=true
 call :parsePath "%driversPath%"
 
@@ -423,8 +432,8 @@ set unattendfileType=custom
 
 if not exist "%unattendfileCustomFullPath%" (goto unattendFileSettingsInvalidPrompt1)
 
-call :parsePath %unattendfileCustomFullPath%
-set unattendFileName=%filename%
+call :parsePath "%unattendfileCustomFullPath%"
+set unattendFileName=%filename%.%extension%
 if /i "%extension%" neq "xml"  (goto unattendFileSettingsInvalidPrompt1)
 echo   unattendFileName:"%unattendFileName%"
 set unattendfileStatus=valid
@@ -498,6 +507,12 @@ if /i "%enableUnicastFallbackForDrivers%" neq "true" if /i "%enableUnicastFallba
 echo   Setting back to default setting of: %default_enableUnicastFallbackForDrivers%
 set enableUnicastFallbackForDrivers=%default_enableUnicastFallbackForDrivers%)
 
+::simpleDriverDeployment, either true or false
+if /i "%simpleDriverDeployment%" neq "true" if /i "%simpleDriverDeployment%" neq "false" (echo   simpleDriverDeployment setting is invalid:"%simpleDriverDeployment%"
+echo   Setting back to default setting of: %default_simpleDriverDeployment%
+set simpleDriverDeployment=%default_simpleDriverDeployment%)
+
+
 ::there really isn't a good way to test the targetTemp destination, and as long as it's specified, isn't a big deal
 
 ::cmdcolor normal,red,yellow, green,miku,purple,gray
@@ -559,6 +574,7 @@ call :cleanInput "%clientTargetDisk%" clientTargetDisk
 call :cleanInput "%clientPartitionLayout%" clientPartitionLayout
 call :cleanInput "%enableUnicastFallbackForImage%" enableUnicastFallbackForImage
 call :cleanInput "%enableUnicastFallbackForDrivers%" enableUnicastFallbackForDrivers
+call :cleanInput "%simpleDriverDeployment%" simpleDriverDeployment
 call :cleanInput "%targetTempFilesLocation%" targetTempFilesLocation
 call :cleanInput "%cmdcolor%" cmdcolor
 call :cleanInput "%torrentclientexe%" torrentclientexe
@@ -838,6 +854,7 @@ echo enableUnicastFallbackForImage=%enableUnicastFallbackForImage%>>"%outputConf
 echo enableUnicastFallbackForDrivers=%enableUnicastFallbackForDrivers%>>"%outputConfig%"
 echo pePathToImages=%pePathToImages%>>"%outputConfig%"
 echo pePathToDrivers=%pePathToDrivers%>>"%outputConfig%"
+echo simpleDriverDeployment=%simpleDriverDeployment%>>"%outputConfig%"
 echo targetTempFilesLocation=%targetTempFilesLocation%>>"%outputConfig%"
 echo cmdcolor=%cmdcolor%>>"%outputConfig%"
 echo torrentclientexe=%torrentclientexe%>>"%outputConfig%"
@@ -893,14 +910,6 @@ echo moving "%tempdir%\%driverArchiveName%.%archiveType%" & echo   to: "%deployC
 move /y "%tempdir%\%driverArchiveName%.%archiveType%" "%deployClientPath%\%driverArchiveName%.%archiveType%"
 :afterMovingDriversArchive
 
-:moveTorrentFile
-if /i "%createTorrent%" neq "true" goto afterMovingTorrent
-if not exist "%tempdir%\%torrentfileName%" (echo   error unable to find %torrentfileName% at "%tempdir%\%torrentfileName%"
-goto end)
-echo  moving: "%tempdir%\%torrentfileName%" 
-echo      to: "%deployClientPath%\%torrentfileName%"
-move /y "%tempdir%\%torrentfileName%" "%deployClientPath%\%torrentfileName%"
-:afterMovingTorrent
 
 if /i "%unattendfileType%" neq "rtm" if /i "%unattendfileType%" neq "advanced" if /i "%unattendfileType%" neq "custom" goto afterUnattendfileCopy
 ::copy specified unattend file
@@ -913,10 +922,17 @@ copy /y "%unattendfileFullPath%" "%deployClientPath%\%unattendFileName%"
 ::if a torrent was never created, then don't move or seed it
 :startSeeding
 if /i "%createTorrent%" neq "true" goto startTracker
+if not exist "%tempdir%\%torrentfileName%" (echo   error unable to find %torrentfileName% at "%tempdir%\%torrentfileName%"
+goto end)
+echo  moving: "%tempdir%\%torrentfileName%" 
+echo      to: "%deployClientPath%\%torrentfileName%"
+move /y "%tempdir%\%torrentfileName%" "%deployClientPath%\%torrentfileName%"
+
 if /i "%startSeeding%" neq "true" goto startTracker
 
 ::start "" M:\uTorrent\uTorrent.exe /directory "C:\Users\User\desktop" myfile.torrent
 ::start "" Aria2c.exe --seed-ratio=0.0 --enable-dht=false --dir="%userprofile%\desktop" myfile.torrent
+echo start "" "%seederClientPath%\%seederClientexe%" %seederClientSyntax% "%deployClientPathAbsPath%\%torrentfileName%">reseed.cmd
 start "" "%seederClientPath%\%seederClientexe%" %seederClientSyntax% "%deployClientPathAbsPath%\%torrentfileName%"
 
 ::9) and startTracker

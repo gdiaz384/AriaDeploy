@@ -106,7 +106,7 @@ Note: A premade winpe-side parser for this config is at: redist\AriaDeploy\scrip
 
 ## Internal Dependency List:
 
-1. Requires ADK tools (dism, windowsPE, bcdedit, bcdboot) -[ADK for Windows 8.1](https://www.microsoft.com/en-US/download/details.aspx?id=39982) or [above](https://msdn.microsoft.com/en-us/windows/hardware/dn913721.aspx) preferred
+1. Requires ADK tools (dism, windowsPE, bcdedit, bcdboot) -[ADK for Windows 8.1](https://www.microsoft.com/en-US/download/details.aspx?id=39982) or [ADK for Windows 10](https://msdn.microsoft.com/en-us/windows/hardware/dn913721.aspx) preferred
 2. ESD deployment is supported when using DISM versions for Windows 8.1 and above on x64 PE images
 3. Aria2 available over at sourceforge [1.19.0](http://aria2.sourceforge.net/) 
 4. 7zip available here [15.0.9b](http://www.7-zip.org)
