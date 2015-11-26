@@ -1,12 +1,14 @@
 UI:
 NewFunct: index button should run dism /get-imageinfo and also /index: with the current index
+Bug: .exe always starts a command prompt with 32-bit env vars (check @comspec configuration) -not a bug
+-the compiled script, if compiled as 32-bit will always return a 32-bit command prompt, a 64-bit one will always have an amd64 env var
 
 WinPE:
 NewFunct: add WMI + to support automatic detection of model drivers (using addDrivers.bat for PE or integrate directly into client) -needs testing
 NewFunct: create windowsPE autogenerate script (see below under deployment)
 UI: write/rewrite some functionality scripts for win PE (info, start, help, ls, list) -inProgress (but on hold for concept art)
 
-deployment:
+Deployment:
 Docs: create diagram showing AiraDeploy server and clients interacting to transfer the .wim file in pretty picture format
 NewFunct: It should be possible to re-seed an existing torrent after closing aria initially -sorta done
 NewFunct: create torrent file for drivers in server for install scenario (Dell_Latittude e6220_win10_x64.torrent)
@@ -19,18 +21,7 @@ NewFunct: create torrent file for drivers in server for install scenario (Dell_L
 -ask for user Manufacturer and model, repeat until correct, can take the architecture and os version from image
 -also need to test py3createtorrent to see how well it handles directories
 UI/Rewrite: create stand alone redistributable package (remove DISM/unattend.xml and bundle seperately) -mostly done
--dependency NewFunct: formalize deployment on a stick scenario 
---should autodetect .wim images, and \drivers folder (turn on simpledriverdeployment)
---allow the user to pick unattend file type, and should autodetect any .xml files at the root (as custom)
---needs to auto-start py3bt_tracker/aria/ftp server and ariadeploy.bat
---should have prebuilt client/server isos (maybe just 1 and switch between two modes)
---should it auto-support PXE? maybe with a cross platform pxe server? uefi support?
--dependency NewFunct: formalize installation-based scenario (with u/qTorrent?)
---This is going to lend itself more to a uTorrent/qTorrent GUI manager for all the .wim images being deployed
---although aira as seeder should still work, would need to update client deployment name
---and client side detection code in order to ask user which .wim to deploy (similar to autoimage)
--dependency NewFunct: write an optional-ish installer (bat + req 7zip or 7z self exe or packaged installer?)
---it should also remove any existing folders and recreate them, create .pe images, ask to install aria deploy (enables option: create temp account+psw), set up ftp
+-see installer_outline.txt for details
 Docs: Dia control flow diagram -mostlydone, but needs updating and trademark logo
 NewFunct: integrate addDrivers.bat functionality as downloading client\resources\drivers\dell_latittude e6220_win7_x86_drivers.torrent into client -need to test
 Rewrite: add native 32-bit deployment capabilities AriaDeploy.bat (resources\x64, x86 folders) -need to test
@@ -38,10 +29,9 @@ NewFunct: add a private torrent flag, would be kinda nice -need to test
 Rewrite: detect resuming in an GPT->MBR switched scenario, as in if the restart partition table format doesn't match the one -humm
 -required by the current boot mode, then start over completely (repartition+redownload)
 Rewrite: verpose copy from-to in scripts (for client especially)
-Docs: write better documentation regarding options in deploy.ini
 Rewrite: if client is set to prompt, display current hard disk configuration
 Rewrite: maybe could mark targettemplocation as hidden and system, maybe modify permissions for it (root folder)
-Bug: using AriaDeploy.exe always starts a 32-bit cmd prompt (check @comspec configuration)
+Docs: write better documentation regarding options in deploy.ini
 
 autoimage:
 Bug: detects boot.wims as deployable images (if .wim is <1gb in size toss it out)
@@ -76,4 +66,3 @@ backport: update windows 7 misc
 Long Term:
 create GUI frontend? -partiallydone, any other ones needed?, compress into single installer to perserve folder structure or add "info wim" functionality to GUI
 Macs? (dism/winpe not licensed for use deploying non windows OSs so would need complete re-write)
-

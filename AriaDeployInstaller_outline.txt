@@ -1,5 +1,21 @@
 AriaDeploy "Installer"
 
+
+UI/Rewrite: create stand alone redistributable package (remove DISM/unattend.xml and bundle seperately) -mostly done
+-dependency NewFunct: formalize deployment on a stick scenario 
+--should autodetect .wim images, and \drivers folder (turn on simpledriverdeployment)
+--allow the user to pick unattend file type, and should autodetect any .xml files at the root (as custom)
+--needs to auto-start py3bt_tracker/aria/ftp server and ariadeploy.bat
+--should have prebuilt client/server isos (maybe just 1 and switch between two modes)
+--should it auto-support PXE? maybe with a cross platform pxe server? uefi support?
+-dependency NewFunct: formalize installation-based scenario (with u/qTorrent?)
+--This is going to lend itself more to a uTorrent/qTorrent GUI manager for all the .wim images being deployed
+--although aira as seeder should still work, would need to update client deployment name
+--and client side detection code in order to ask user which .wim to deploy (similar to autoimage)
+-dependency NewFunct: write an optional-ish installer (bat + req 7zip or 7z self exe or packaged installer?)
+--it should also remove any existing folder
+
+
 Ask:
 extract to folder (installer scenario)
 -if so also ask to share path automatically (create temp user)
