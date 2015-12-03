@@ -221,10 +221,8 @@ for /f "skip=2 eol=: delims== tokens=1-10" %%i in ('find /i "customPostImagingSc
 for /f "skip=2 eol=: delims== tokens=1-10" %%i in ('find /i "customPostOobeScript=" %serverConfigFile%') do if /i "%%j" neq "" set customPostOobeScript=%%j
 :skipReadingServerConfigFile
 
-@echo on
 set currentArchitecture=%processor_architecture%
 if /i "%currentArchitecture%" equ "amd64" set currentArchitecture=x64
-@echo off
 
 ::read from command line
 if not exist "%~1" (echo   error please specify the full path of valid image file. Does not exist:&echo         "%~1"&goto end) else (set rawWimfilePath=%~1)
@@ -275,8 +273,8 @@ call :getWimInfo "%wimfilePath%\%wimfileName%" "%wimIndex%"
 :: D:\AriaDeploy\server \  ..\client  \  %torrentfilename%
 set deployClientPathAbsPath=%cd%\%deployClientPath%
 set resourcesPath=resources\%currentArchitecture%
-echo %resourcesPath%
-goto end
+::echo %resourcesPath%
+
 
 ::initalize script specific variables::
 set tempdir=%temp%\temp%random%

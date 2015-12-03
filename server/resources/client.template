@@ -787,21 +787,21 @@ if not exist "%targetTempFilesLocation%\drivers" mkdir "%targetTempFilesLocation
 
 ::if drivers archive file exist, use that (preferred)
 ::change this to goto WMI fallback for driver torrents and paths once implemented
-if /i "%installDriversFromArchive%" neq "true" goto postInstallingDrivers
+if /i "%installDriversFromArchive%" neq "true" goto wmiDetectDrivers
 set driversArchiveSource=%configFilesLocation%\%driversArchiveName%
 set driversArchiveDestination=%targetTempFilesLocation%\%driversArchiveName%
 ::change this to goto WMI fallback for driver torrents and paths once implemented
-if not exist "%driversArchiveSource%" goto postInstallingDrivers
+if not exist "%driversArchiveSource%" goto wmiDetectDrivers
 
 ::copy drivers archive to deploy path
 copy /y "%driversArchiveSource%" "%driversArchiveDestination%"
-if not exist "%driversArchiveDestination%" goto postInstallingDrivers
+if not exist "%driversArchiveDestination%" goto wmiDetectDrivers
 
 ::7za.exe x "C:\Users\Administrator\desktop\lattitude_drivers_x64.zip" -o"C:\Users\Administrator\desktop\latitude drivers x64\" -y 
 ::extract to subdirectory
 "%sevenz%" x "%driversArchiveDestination%" -o"%targetTempFilesLocation%\drivers\" -y
 if %errorlevel% neq 0 (echo error extracting drivers
-goto postInstallingDrivers)
+goto wmiDetectDrivers)
 
 ::apply drivers using subdirectory
 dism /image:%winDrive% /add-driver /driver:"%targetTempFilesLocation%\drivers" /recurse
@@ -814,6 +814,7 @@ goto postInstallingDrivers
 :: if available then first check to see if an existing torrent exists either in the client root or the client\resources\drivers folder
 :: if availabe download files (via aria) and apply them, if not available then check to see if unicasting the drivers is available (via a wmi gen path)
 
+:wmiDetectDrivers
 if not exist wbem\wmic.exe (echo   could not find wbem\wmic.exe, please update winPE packages to enable WMI functionality
 goto blindUnicastDrivers)
 
@@ -842,9 +843,9 @@ echo Motherboard:%baseboardProductInfo%
 :: dell_01mcmn_win7_x64.torrent
 echo   Looking for: "%manufacturer%_%model%_win%wimOSVersion%_%wimArchitecture%.torrent"
 echo   or         "%baseboardManufacturer%_%baseboardProductInfo%_win%wimOSVersion%_%wimArchitecture%.torrent"
-echo   at   %configFilesLocation%
-if exist "%configFilesLocation%\%manufacturer%_%model%_win%wimOSVersion%_%wimArchitecture%.torrent" set driverTorrent=%configFilesLocation%\%manufacturer%_%model%_win%wimOSVersion%_%wimArchitecture%.torrent
-if exist "%configFilesLocation%\%baseboardManufacturer%_%baseboardProductInfo%_win%wimOSVersion%_%wimArchitecture%.torrent" set driverTorrent=%configFilesLocation%\%baseboardManufacturer%_%baseboardProductInfo%_win%wimOSVersion%_%wimArchitecture%.torrent
+echo   at   %configFilesLocation%\resources\drivers
+if exist "%configFilesLocation%\resources\drivers\%manufacturer%_%model%_win%wimOSVersion%_%wimArchitecture%.torrent" set driverTorrent=%configFilesLocation%\resources\drivers\%manufacturer%_%model%_win%wimOSVersion%_%wimArchitecture%.torrent
+if exist "%configFilesLocation%\resources\drivers\%baseboardManufacturer%_%baseboardProductInfo%_win%wimOSVersion%_%wimArchitecture%.torrent" set driverTorrent=%configFilesLocation%\resources\drivers\%baseboardManufacturer%_%baseboardProductInfo%_win%wimOSVersion%_%wimArchitecture%.torrent
 if not defined driverTorrent goto wmiUnicastDrivers
 
 ::okay so the driver .torrent exists, now to download and apply it
@@ -854,8 +855,9 @@ goto postInstallingDrivers
 
 ::wmi path code goes here
 :wmiUnicastDrivers
-if exist "%driversFallbackUnicastPath%\%manufacturer%\%model%\win%wimOSVersion%\%wimArchitecture%" set wmiUnicastDriverPath=%driversFallbackUnicastPath%\%manufacturer%\%model%\win%wimOSVersion%\%wimArchitecture%
-if exist "%driversFallbackUnicastPath%\%baseboardManufacturer%\%baseboardProductInfo%\win%wimOSVersion%\%wimArchitecture%" set wmiUnicastDriverPath=%driversFallbackUnicastPath%\%baseboardManufacturer%\%baseboardProductInfo%\win%wimOSVersion%\%wimArchitecture%
+if not exist "%pePathToDrivers%" goto blindUnicastDrivers
+if exist "%pePathToDrivers%\%manufacturer%\%model%\win%wimOSVersion%\%wimArchitecture%" set wmiUnicastDriverPath=%pePathToDrivers%\%manufacturer%\%model%\win%wimOSVersion%\%wimArchitecture%
+if exist "%pePathToDrivers%\%baseboardManufacturer%\%baseboardProductInfo%\win%wimOSVersion%\%wimArchitecture%" set wmiUnicastDriverPath=%pePathToDrivers%\%baseboardManufacturer%\%baseboardProductInfo%\win%wimOSVersion%\%wimArchitecture%
 if not defined wmiUnicastDriverPath goto blindUnicastDrivers
 echo   Installing drivers from: "%wmiUnicastDriverPath%"
 dism /image:%winDrive%\ /add-driver /driver:"%wmiUnicastDriverPath%" /recurse
@@ -867,8 +869,8 @@ goto postInstallingDrivers
 :: so how to differentiate?, maybe if simpleDriverDeployment equ true then
 :blindUnicastDrivers
 if /i "%simpleDriverDeployment%" neq "true" goto postInstallingDrivers
-if not exist "%driversFallbackUnicastPath%" goto postInstallingDrivers
-dism /image:%winDrive%\ /add-driver /driver:"%driversFallbackUnicastPath%" /recurse
+if not exist "%pePathToDrivers%" goto postInstallingDrivers
+dism /image:%winDrive%\ /add-driver /driver:"%pePathToDrivers%" /recurse
 ::goto postInstallingDrivers)
 :postInstallingDrivers
 

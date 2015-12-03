@@ -1,8 +1,8 @@
 # AriaDeploy
 
-AriaDeploy is a Tool for Deploying Windows Systems in Enterprise Enviornments
+AriaDeploy is a Tool for Deploying Windows Systems in Enterprise Environments
 
-AriaDeploy transfers previously captured .wim images (captured via dism/mdt/imagex/gimagex/sccm) over the network using Aria, a bittorrent client, and automates common deployment tasks, such as the installation of drivers.
+AriaDeploy transfers previously captured wim images (captured via dism/mdt/imagex/gimagex/sccm) over the network using Aria, a bittorrent client, and automates common deployment tasks, such as the installation of drivers.
 
 Currently AriaDeploy supports all Windows 7-10 x86/x64 and server images, both RTM and custom, for deployment on BIOS/UEFI systems.
 
@@ -18,19 +18,19 @@ Currently AriaDeploy supports all Windows 7-10 x86/x64 and server images, both R
 2. Aims to be a zero-configuration tool for automating simple deployments
 3. Supports automated configuration of drivers/disk partitioning/OOBE "out of the box"
 4. Aims to be trivial to get started
-5. Seemlessly integrates into existing workflows
+5. Seamlessly integrates into existing workflows
 6. Supports complicated scenarios using customizable config.ini files and custom scripts
-7. Supports deployments in heterogenous booting/pe/hardware enviornments transparently
-8. Eliminates dependency on fragile and configuration intensive multicasting technology
+7. Supports deployments in heterogeneous booting/pe/hardware environments transparently
+8. Eliminates dependency on fragile and configuration intensive multi-casting technology
 9. Excellent performance whether deploying to 5 or 500 computers
 10. Has minimal external dependencies
 11. Transparent design built using Free Open Source Software and industry standard tools (ADK)
 
 ## Planned Features include:
 
-1. "Installation" script to prebuild Windows PE .wims/isos and transfer the relevant files -inprogress
-2. Support for deployment on heterogenous hardware systems (via adding WMI packages to WinPE) -done
-3. "Deployment-on-a-stick" scenarios -inprogress
+1. "Installation" script to build Windows PE wim/iso and transfer the relevant files -in progress
+2. Support for deployment on heterogeneous hardware systems (via adding WMI packages to WinPE) -done
+3. "Deployment-on-a-stick" scenarios -in progress
 4. Automated deployment image and tools integration into recovery partitions (this is useful to OEMs)
 5. AriaDeploy for OS/X (will be a while)
 
@@ -41,16 +41,16 @@ Currently AriaDeploy supports all Windows 7-10 x86/x64 and server images, both R
 3. will automate the installation of drivers
 4. will make the target systems bootable using the PE boot mode information
 5. will automate oobe
-6. allow for asyncronous deployments, unlike traditional server-clients using the high-configuration mulitcasting model
+6. allow for asynchronous deployments, unlike traditional server-clients using the high-configuration mulitcasting model
 7. is designed to integrate into existing MDT and SCCM workflows, including those involving Active Directory
 
 ## AriaDeploy is not/will not
 
-1. will not capture images or deploy virtual disks (.vhd/vmdk files)
+1. will not capture images or deploy virtual disks (vhd/vmdk files)
 2. will NOT preserve user data on target systems
-3. will not download adks or the correct drivers for you
-4. will not determine that windows version X cannot boot as configured on target system Y due to incompatability Z
-5. will not autogenerate unattend.xml files (use MDT for that instead) or input the correct product key for you in the provided unattend.xml templates
+3. will not download ADKs or the correct drivers for you
+4. will not determine that windows version X cannot boot as configured on target system Y due to incompatibility Z
+5. will not auto-generate unattend.xml files (use MDT for that instead) or input the correct product key for you in the provided unattend.xml templates
 6. is a just tool, not a full system lifecycle deployment solution
 7. is not dependent upon WDS/MDT/SCCM/Active Directory
 
@@ -61,7 +61,7 @@ Currently AriaDeploy supports all Windows 7-10 x86/x64 and server images, both R
 1. (optional) Download drivers for your hardware model(s) from [Dell](http://en.community.dell.com/techcenter/enterprise-client/w/wiki/2065.dell-command-deploy-driver-packs-for-enterprise-client-os-deployment), [Lenovo](https://support.lenovo.com/us/en/documents/ht074984) and [HP](http://www8.hp.com/us/en/ads/clientmanagement/drivers-pack.html) 
 2. (optional) Extract to some folder like D:\Drivers\Dell\Optiplex9010\Win7\x64
 3. Double click on AriaDeploy.exe
-4. Select your .wim image created using DISM/MDT
+4. Select your wim image created using DISM/MDT
 5. (optional) Select the drivers folder from step 2 (D:\Drivers\Dell\Optiplex9010\Win7\x64)
 6. (optional) Select the type of unattend.xml file to use, an RTM one or a custom one
 7. Click on "Start"
@@ -100,9 +100,9 @@ In Development: 0.4.1b
 ::might need to convert batch script to .sh so maybe AriaDeployForMac
 1.1.0 added optional 7z deployment scenario
 1.0.0 formalized and streamlined "deployment on a stick" and installer scenarios
-0.4.1 added heterogenous hardware support using WMI, (requires WMI components in PE images however)
+0.4.1 added heterogeneous hardware support using WMI, (requires WMI components in PE images however)
 0.4.0 added support for "deployment on a stick" scenarios (by replacing qTorrent with py3bt_tracker), made server architecture agnostic, bug fixed AriaDeploy.exe
-0.3.1 refractored code, improved overall reliability, created "installer", switched to FOSS qTorrent over uTorrent for server aspect, and reduced requirements
+0.3.1 retractored code, improved overall reliability, created "installer", switched to FOSS qTorrent over uTorrent for server aspect, and reduced requirements
 0.3 refractored code, addedUI, improved client side reliability, changed name to "AiraDeploy"
 0.2 refractored code, added server component, improved scalability (architecture agnostic using Aria instead of uTorrent3.3)
 0.1 "massDeploy" concept art using uTorrent 3.3/psutils, client side only
