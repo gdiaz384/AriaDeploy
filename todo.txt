@@ -1,5 +1,6 @@
 UI:
 NewFunct: index button should run dism /get-imageinfo and also /index: with the current index
+Bug: checking the unattend.xml checkbox (as opposed to the unattend.xml label) toggles the hash-check checkbox
 Bug: .exe always starts a command prompt with 32-bit env vars (check @comspec configuration) -not a bug
 -the compiled script, if compiled as 32-bit will always return a 32-bit command prompt, a 64-bit one will always have an amd64 env var
 
@@ -9,6 +10,8 @@ NewFunct: create windowsPE autogenerate script (see below under deployment)
 UI: write/rewrite some functionality scripts for win PE (info, start, help, ls, list) -inProgress (but on hold for concept art)
 
 Deployment:
+Bug: cmd.exe no disk error when looking for optical drives 
+Bug: reseed does not allow double-click seeding due to non-absolute path
 Docs: create diagram showing AiraDeploy server and clients interacting to transfer the .wim file in pretty picture format
 NewFunct: It should be possible to re-seed an existing torrent after closing aria initially -sorta done
 NewFunct: create torrent file for drivers in server for install scenario (Dell_Latittude e6220_win10_x64.torrent)
@@ -59,6 +62,7 @@ NewFunct: Add suggested deployment architecture to presentation (incl scalabilit
 Add "layers and interlopability slide" to system design presentation concluding that shims are commonly added to ensure backwards compatability, -define interlopability and formalize the concept of an "interface"
 
 Misc:
+NewFunct: Make AriaDeploy fully ipv6 compliant (only partially currently)
 humm: windows 10 recovery
 NewFunct: windows 8 recovery
 backport: update windows 7 misc
