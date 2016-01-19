@@ -5,15 +5,15 @@ Bug: .exe always starts a command prompt with 32-bit env vars (check @comspec co
 -the compiled script, if compiled as 32-bit will always return a 32-bit command prompt, a 64-bit one will always have an amd64 env var
 
 WinPE:
-NewFunct: add WMI + to support automatic detection of model drivers (using addDrivers.bat for PE or integrate directly into client) -needs testing
+NewFunct: add WMI + to support automatic detection of model drivers (using addDrivers.bat for PE or integrate directly into client) -needs more testing but appears working
 NewFunct: create windowsPE autogenerate script (see below under deployment)
 UI: write/rewrite some functionality scripts for win PE (info, start, help, ls, list) -inProgress (but on hold for concept art)
 
 Deployment:
-Bug: cmd.exe no disk error when looking for optical drives 
+Bug: cmd.exe no disk error when looking for optical drives
+NewFunct: It should be possible to re-seed an existing torrent after closing aria initially -buggy
 Bug: reseed does not allow double-click seeding due to non-absolute path
 Docs: create diagram showing AiraDeploy server and clients interacting to transfer the .wim file in pretty picture format
-NewFunct: It should be possible to re-seed an existing torrent after closing aria initially -sorta done
 NewFunct: create torrent file for drivers in server for install scenario (Dell_Latittude e6220_win10_x64.torrent)
 -maybe, "specifyManufacturerAndModelAndCreateDriversTorrent" or "createDriversTorrent"=false by default
 -this option is incompatible with archiveDrivers due to possible driver conflicts, so inform and ask user to resolve

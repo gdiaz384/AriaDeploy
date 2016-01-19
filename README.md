@@ -2,7 +2,7 @@
 
 AriaDeploy is a Tool for Deploying Windows Systems in Enterprise Environments
 
-AriaDeploy transfers previously captured wim images (captured via dism/mdt/imagex/gimagex/sccm) over the network using Aria, a bittorrent client, and automates common deployment tasks, such as the installation of drivers.
+AriaDeploy transfers previously captured wim images (captured via dism/mdt/imagex/gimagex/sccm) over the network using Aria, a bittorrent client, and automates common deployment tasks, such as the installation of drivers onto heterogeneous hardware systems.
 
 Currently AriaDeploy supports all Windows 7-10 x86/x64 and server images, both RTM and custom, for deployment on BIOS/UEFI systems.
 
@@ -12,17 +12,17 @@ Currently AriaDeploy supports all Windows 7-10 x86/x64 and server images, both R
 
 ## Key Features:
 
-1. Focuses on providing completely automatic deployment
-2. Aims to be a zero-configuration tool for automating simple deployments
-3. Supports complicated scenarios using customizable config.ini files and custom scripts
-4. Aims to be trivial to get started
-5. Supports automated configuration of drivers/disk partitioning/OOBE "out of the box"
-6. Seamlessly integrates into existing workflows
-7. Supports deployments in heterogeneous booting/pe/hardware environments transparently
-8. Eliminates dependency on fragile and configuration intensive multi-casting technology
-9. Excellent performance whether deploying to 5 or 500 computers
-10. Has minimal external dependencies
-11. Transparent design built using Free Open Source Software and industry standard tools (ADK)
+- Focuses on providing completely automatic deployment
+- Aims to be a zero-configuration tool for automating simple deployments
+- Supports complicated scenarios using customizable config.ini files and custom scripts
+- Aims to be trivial to get started
+- Supports automated configuration of drivers/disk partitioning/OOBE "out of the box"
+- Seamlessly integrates into existing workflows
+- Supports deployments in heterogeneous booting/pe/hardware environments transparently
+- Eliminates dependency on fragile and configuration intensive multi-casting technology
+- Excellent performance whether deploying to 5 or 500 computers
+- Has minimal external dependencies
+- Transparent design built using Free Open Source Software and industry standard tools (ADK)
 
 ## Planned Features include:
 
@@ -76,14 +76,20 @@ For the latest non-release ready version, click on "Download ZIP" at the top
 
 ## Install guide:
 
+For detailed documentation please see [Aria Deploy's official documentation](//docs.google.com/document/d/1Xte7ej58oPpJlLjvgUamBO-JwuC_FLBWcxcnc87WK2Q/edit?usp=sharing)
+
 I have bundled most of the dependencies into the installer, but due to the ADK's non-redistributable clause, I cannot provide prebuilt WinPE images (part of the ADK) for use with AriaDeploy. For similar reasons, I also cannot provide full unattend.xml files, only templates for them.
 
-1. Download and install the [ADK for Windows 10](//msdn.microsoft.com/en-us/windows/hardware/dn913721.aspx) and/or [Windows 8.1Update](//www.microsoft.com/en-US/download/details.aspx?id=39982), and/or [Win7's AIK] (//www.microsoft.com/en-us/download/details.aspx?id=5753) and [supplement](//www.microsoft.com/en-us/download/details.aspx?id=5188) Having all 3 is prefered for maximum flexibility but just one of the above will also work.
-2. (optional) While waiting for the ADKs to download/install (takes a while), go download drivers for WinPE from  [Dell](//en.community.dell.com/techcenter/enterprise-client/w/wiki/2065.dell-command-deploy-driver-packs-for-enterprise-client-os-deployment), [Lenovo](//support.lenovo.com/us/en/documents/ht074984) and [HP](//www8.hp.com/us/en/ads/clientmanagement/drivers-pack.html) 
-3. (optional) extract the PE drivers to the appropriate folders: AriaDeploy\drivers\WinPE\5_x\x64 or 10_x86
-4. (optional) Also get the [generic RTM unattend.xml files](//github.com/gdiaz384/AriaDeploy/tree/master/redist/AriaDeploy/resources) and here for the [MS license keys to use when deploying systems](//technet.microsoft.com/en-us/library/jj612867.aspx)
-5. (optional) Input the MS keys into the unattend.RTM.xml files
-6. After the ADK finishes installing, double click on InstallAriaDeploy.bat
+1. Download and extract AriaDeploy to workspace\AriaDeploy
+2. Download and install the [ADK for Windows 10](//msdn.microsoft.com/en-us/windows/hardware/dn913721.aspx) and/or [Windows 8.1Update](//www.microsoft.com/en-US/download/details.aspx?id=39982), and/or [Win7's AIK] (//www.microsoft.com/en-us/download/details.aspx?id=5753) and [supplement](//www.microsoft.com/en-us/download/details.aspx?id=5188) Having all 3 is prefered for maximum flexibility but just one of the above will also work.
+3. (optional) While waiting for the ADKs to download/install (takes a while), go download drivers for WinPE from  [Dell](//en.community.dell.com/techcenter/enterprise-client/w/wiki/2065.dell-command-deploy-driver-packs-for-enterprise-client-os-deployment), [Lenovo](//support.lenovo.com/us/en/documents/ht074984) and [HP](//www8.hp.com/us/en/ads/clientmanagement/drivers-pack.html) 
+4. (optional) extract the PE drivers to the appropriate folders: AriaDeploy\drivers\WinPE\5_x\x64 or 10_x86
+5. (optional) Also get the [generic RTM unattend.xml files](//github.com/gdiaz384/AriaDeploy/tree/master/redist/AriaDeploy/resources) and here for the [MS license keys to use when deploying systems](//technet.microsoft.com/en-us/library/jj612867.aspx)
+6. (optional) Input the MS keys into the unattend.RTM.xml files
+7. Share the workspace folder of workspace\AriaDeploy via read-only CIFS (suggested share name=AriaDeploy$)
+9. (optional) For automatic drive mapping, install an FTP server and share workspace\AriaDeploy\client\resources over ftp
+9.5. (optional) update workspace\AriaDeploy\client\resources\credentialsForNetworkDrive.txt
+10. After the ADK finishes installing, double click on AriaDeploy.exe
 
 ## Version History/Planning
 
@@ -98,9 +104,9 @@ In Development: 0.4.1rc-1
 ::might need to convert batch script to .sh so maybe AriaDeployForMac
 1.1.0 added optional 7zip deployment scenario
 1.0.0 formalized and streamlined "deployment on a stick" and installer scenarios
-0.4.1 added heterogeneous hardware support using WMI, (requires WMI components in PE images however)
+0.4.1 added heterogeneous hardware support using WMI, (requires WMI components in PE images however), made server side client agnostic
 0.4.0 added support for "deployment on a stick" scenarios (by replacing qTorrent with py3bt_tracker), made server architecture agnostic, bug fixed AriaDeploy.exe
-0.3.1 retractored code, improved overall reliability, created "installer", switched to FOSS qTorrent over uTorrent for server aspect, and reduced requirements
+0.3.1 refractored code, improved overall reliability, created "installer", switched to FOSS qTorrent over uTorrent for server aspect, and reduced requirements
 0.3 refractored code, addedUI, improved client side reliability, changed name to "AiraDeploy"
 0.2 refractored code, added server component, improved scalability (architecture agnostic using Aria instead of uTorrent3.3)
 0.1 "massDeploy" concept art using uTorrent 3.3/psutils, client side only
