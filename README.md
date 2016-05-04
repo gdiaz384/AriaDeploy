@@ -2,13 +2,13 @@
 
 AriaDeploy is a Tool for Deploying Windows Systems in Enterprise Environments
 
-AriaDeploy transfers previously captured wim images (captured via dism/mdt/imagex/gimagex/sccm) over the network using Aria, a bittorrent client, and automates common deployment tasks, such as the installation of drivers onto heterogeneous hardware systems.
+AriaDeploy transfers captured .wim images over the network using Aria2, a bittorrent client, and automates common deployment tasks, such as the installation of drivers, onto heterogeneous hardware systems.
 
 Currently AriaDeploy supports all Windows 7-10 x86/x64 and server images, both RTM and custom, for deployment on BIOS/UEFI systems.
 
-![screenshot1](redist/AriaDeploy/docs/AriaDeployPic.png)
+![screenshot1](docs/pics/AriaDeployPic.png)
 
-![screenshot1](redist/AriaDeploy/docs/AriaSystemLifecycle.png)
+![screenshot2](docs/pics/AriaSystemLifecycle.png)
 
 ## Key Features:
 
@@ -24,21 +24,13 @@ Currently AriaDeploy supports all Windows 7-10 x86/x64 and server images, both R
 - Has minimal external dependencies
 - Transparent design built using Free Open Source Software and industry standard tools (ADK)
 
-## Planned Features include:
-
-1. "Installation" script to build Windows PE wim/iso and transfer the relevant files -in progress
-2. Support for deployment on heterogeneous hardware systems (via adding WMI packages to WinPE) -done
-3. "Deployment-on-a-stick" scenarios -in progress
-4. Automated deployment image and tools integration into recovery partitions (this is useful to OEMs)
-5. AriaDeploy for OS/X (will be a while)
-
 ## AriaDeploy is/will
 
-1. will deploy images in the standard windows imaging and electronic software delivery formats (wim/esd)
+1. will deploy images in the standard Windows Imaging Format (.wim) and Electronic Software Delivery (.esd) formats
 2. will reformat the main disk on the target systems as specified (normal or minimalistic)
 3. will automate the installation of drivers
-4. will make the target systems bootable using the PE boot mode information
-5. will automate oobe
+4. will make the target systems bootable post deployment using WinPE boot mode information and ADK tools
+5. will automate oobe when provided with an unattend.xml file
 6. allow for asynchronous deployments, unlike traditional server-clients using the high-configuration mulitcasting model
 7. is designed to integrate into existing MDT and SCCM workflows, including those involving Active Directory
 
@@ -49,12 +41,14 @@ Currently AriaDeploy supports all Windows 7-10 x86/x64 and server images, both R
 3. will not download ADKs or the correct drivers for you
 4. will not determine that windows version X cannot boot as configured on target system Y due to incompatibility Z
 5. will not auto-generate unattend.xml files (use MDT for that instead) or input the correct product key for you in the provided unattend.xml templates
-6. is a just tool, not a full system lifecycle deployment solution
+6. is a tool, not a full system lifecycle deployment solution
 7. is not dependent upon WDS/MDT/SCCM/Active Directory
+
+AriaDeploy does not currently support client-side selection of images (only selecting a single image server-side).
 
 ## Typical Usage Guide:
 
-![screenshot1](redist/AriaDeploy/docs/AriaDeployWorkflow.png)
+![screenshot1](docs/pics/AriaDeployWorkflow.png)
 
 1. (optional) Download drivers for your hardware model(s) from [Dell](//en.community.dell.com/techcenter/enterprise-client/w/wiki/2065.dell-command-deploy-driver-packs-for-enterprise-client-os-deployment), [Lenovo](//support.lenovo.com/us/en/documents/ht074984) and [HP](//www8.hp.com/us/en/ads/clientmanagement/drivers-pack.html) 
 2. (optional) Extract to some folder like D:\Drivers\Dell\Optiplex9010\Win7\x64
@@ -76,7 +70,7 @@ For the latest non-release ready version, click on "Download ZIP" at the top
 
 ## Install guide:
 
-For detailed documentation please see [Aria Deploy's official documentation](//docs.google.com/document/d/1Xte7ej58oPpJlLjvgUamBO-JwuC_FLBWcxcnc87WK2Q/edit?usp=sharing)
+For detailed documentation please see [Aria Deploy's Documentation](//docs.google.com/document/d/1Xte7ej58oPpJlLjvgUamBO-JwuC_FLBWcxcnc87WK2Q/pub)
 
 I have bundled most of the dependencies into the installer, but due to the ADK's non-redistributable clause, I cannot provide prebuilt WinPE images (part of the ADK) for use with AriaDeploy. For similar reasons, I also cannot provide full unattend.xml files, only templates for them.
 
@@ -91,23 +85,32 @@ I have bundled most of the dependencies into the installer, but due to the ADK's
 9.5. (optional) update workspace\AriaDeploy\client\resources\credentialsForNetworkDrive.txt
 10. After the ADK finishes installing, double click on AriaDeploy.exe
 
+## Planned Features include:
+
+1. "Installation" script to build Windows PE wim/iso and transfer the relevant files -in progress
+2. Support for deployment on heterogeneous hardware systems (via adding WMI packages to WinPE) -done
+3. "Deployment-on-a-stick" scenarios -in progress
+4. Automated deployment image and tools integration into recovery partitions (this is useful to OEMs)
+5. AriaDeploy for OS/X (will be a while)
+
 ## Version History/Planning
 
-Note: The current focus of development is on architectural improvements and features.
+Note: The current focus of development is on automation-related tasks, documentation and bug fixes (not features).
 
 ```
-Current Version: 0.4.1b
-In Development: 0.4.1rc-1
+Current Version: 0.4.1rc-1
+In Development: 0.4.1rc-2
 
 ::2.0.0 added partial mac support (no drivers)(?) winpe/dism not licensed for use on non-windows systems, 
 ::gparted can HFS+, rEFInd can boot, live distros are common, just need to find one that can access NFS/CIFS shares easily
 ::might need to convert batch script to .sh so maybe AriaDeployForMac
-1.1.0 added optional 7zip deployment scenario
-1.0.0 formalized and streamlined "deployment on a stick" and installer scenarios
-0.4.1 added heterogeneous hardware support using WMI, (requires WMI components in PE images however), made server side client agnostic
-0.4.0 added support for "deployment on a stick" scenarios (by replacing qTorrent with py3bt_tracker), made server architecture agnostic, bug fixed AriaDeploy.exe
-0.3.1 refractored code, improved overall reliability, created "installer", switched to FOSS qTorrent over uTorrent for server aspect, and reduced requirements
-0.3 refractored code, addedUI, improved client side reliability, changed name to "AiraDeploy"
+::1.2.0 added optional 7zip deployment scenario
+::1.1.0 added OEM recovery partition integration
+::1.0.0 formalized and streamlined "deployment on a stick" and installer scenarios
+0.4.1 added heterogeneous hardware support using WMI, (requires WMI components in PE images however), made server BitTorrent client agnostic, bug fixed AriaDeploy.exe
+0.4.0 added theoretical support for "deployment on a stick" scenarios (by replacing qTorrent with py3bt_tracker), made server architecture agnostic, bug fixed AriaDeploy.exe
+0.3.1 refractored code, improved overall reliability, created "installer", switched to FOSS qTorrent over uTorrent for server aspect and reduced requirements
+0.3 refractored code, addedUI, improved client side reliability, changed name to "AriaDeploy"
 0.2 refractored code, added server component, improved scalability (architecture agnostic using Aria instead of uTorrent3.3)
 0.1 "massDeploy" concept art using uTorrent 3.3/psutils, client side only
 ```

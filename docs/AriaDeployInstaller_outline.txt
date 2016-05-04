@@ -1,0 +1,70 @@
+AriaDeploy "Installer"
+
+
+UI/Rewrite: create stand alone redistributable package (remove DISM/unattend.xml and bundle seperately) -mostly done
+-dependency NewFunct: formalize deployment on a stick scenario 
+--should autodetect .wim images, and \drivers folder (turn on simpledriverdeployment)
+--allow the user to pick unattend file type, and should autodetect any .xml files at the root (as custom)
+--needs to auto-start py3bt_tracker/aria/ftp server and ariadeploy.bat
+--should have prebuilt client/server isos (maybe just 1 and switch between two modes)
+--should it auto-support PXE? maybe with a cross platform pxe server? uefi support?
+-dependency NewFunct: formalize installation-based scenario (with u/qTorrent?)
+--This is going to lend itself more to a uTorrent/qTorrent GUI manager for all the .wim images being deployed
+--although aira as seeder should still work, would need to update client deployment name
+--and client side detection code in order to ask user which .wim to deploy (similar to autoimage)
+-dependency NewFunct: write an optional-ish installer (bat + req 7zip or 7z self exe or packaged installer?)
+--it should also remove any existing folder
+
+
+Ask:
+extract to folder (installer scenario)
+-if so also ask to share path automatically (create temp user)
+-and input credentials into credetnails.txt
+-ask to install FTP server (?)
+ask to build pe images (.wim and .iso)
+
+
+Extract contents to specified folder 
+(default if exist D:, D:\workspace\AriaDeploy
+else %userprofile%\desktop\AriaDeploy 
+or c:\workspace\AriaDeploy)
+
+create network share if installer scenario
+-remove if already exists, 
+
+-can build pe from kits for deployment on a stick scenarios
+-2 modes? 1) normal installer mode
+(needed for larger deployments with persistent settings and to install drivers(?))
+2) deployment on a stick mode
+reccomended for small (1-15) deployments and testing
+-or both
+
+detect the kits
+
+detect if installed
+1)
+registry
+SET KitsRootRegValueName=KitsRoot81
+SET KitsRootRegValueName=KitsRoot10
+HKLM\Software\Wow6432Node\Microsoft\Windows Kits\Installed Roots
+FOR /F "skip=2 tokens=2*" %%i IN ('REG QUERY "%regKeyPath%" /v %KitsRootRegValueName%') DO (SET KitsRoot=%%j)
+SET DandIRoot=%KitsRoot%Assessment and Deployment Kit\Deployment Tools
+2) (lower priority) installation default)
+no reg settings for AIK for Win7, so just check at
+C:\Program Files\Windows AIK
+C:\Program Files (x86)\Windows Kits\8.1
+C:\Program Files\Windows Kits\8.1
+C:\Program Files (x86)\Windows Kits\10
+C:\Program Files\Windows Kits\10
+then make sure pe components are also found
+
+mount the default image, 
+update the drivers, components and scripts (and maybe background)
+
+then capture .wim (name appropriately) and then turn .wim into .isos
+
+maybe get a better FTP server?, command line one would be ideal
+"ftpd install service" or w/e, copy ftpd.ini to c:\program files\ftp\fptd.ini
+Could set up FTP server automatically that way
+
+
